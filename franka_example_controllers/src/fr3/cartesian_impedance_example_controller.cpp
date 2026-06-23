@@ -18,8 +18,8 @@
 
 namespace franka_example_controllers {
 
-CartesianImpedanceExampleController::CartesianGains
-CartesianImpedanceExampleController::buildGains(const std::array<double, num_cartesian_dof>& k) {
+CartesianImpedanceExampleController::CartesianGains CartesianImpedanceExampleController::buildGains(
+    const std::array<double, num_cartesian_dof>& k) {
   CartesianGains g;
   for (int i = 0; i < num_cartesian_dof; ++i) {
     const double ki = std::max(0.0, k[i]);
@@ -29,8 +29,7 @@ CartesianImpedanceExampleController::buildGains(const std::array<double, num_car
   return g;
 }
 
-CartesianImpedanceExampleController::CallbackReturn
-CartesianImpedanceExampleController::on_init() {
+CartesianImpedanceExampleController::CallbackReturn CartesianImpedanceExampleController::on_init() {
   try {
     auto_declare<std::string>("arm_id", "fr3");
     auto_declare<std::string>("arm_prefix", "");
@@ -85,16 +84,14 @@ CartesianImpedanceExampleController::on_configure(
   arm_id_ = get_node()->get_parameter("arm_id").as_string();
   arm_prefix_ = get_node()->get_parameter("arm_prefix").as_string();
   // Match the franka_hardware export pattern: prefix + index + "/cartesian_pose_state".
-  const std::string cartesian_pose_prefix =
-      arm_prefix_.empty() ? std::string{} : arm_prefix_ + "_";
+  const std::string cartesian_pose_prefix = arm_prefix_.empty() ? std::string{} : arm_prefix_ + "_";
 
   franka_cartesian_pose_ =
       std::make_unique<franka_semantic_components::FrankaCartesianPoseInterface>(
           cartesian_pose_prefix, k_elbow_activated_);
 
   franka_robot_model_ = std::make_unique<franka_semantic_components::FrankaRobotModel>(
-      arm_id_ + "/" + k_robot_model_interface_name,
-      arm_id_ + "/" + k_robot_state_interface_name);
+      arm_id_ + "/" + k_robot_model_interface_name, arm_id_ + "/" + k_robot_state_interface_name);
 
   const double t_k = get_node()->get_parameter("translational_stiffness").as_double();
   const double r_k = get_node()->get_parameter("rotational_stiffness").as_double();
@@ -120,9 +117,8 @@ CartesianImpedanceExampleController::on_configure(
           std::bind(&CartesianImpedanceExampleController::setCartesianStiffnessCallback, this,
                     std::placeholders::_1, std::placeholders::_2));
 
-  param_cb_handle_ = get_node()->add_on_set_parameters_callback(
-      std::bind(&CartesianImpedanceExampleController::onParameterUpdate, this,
-                std::placeholders::_1));
+  param_cb_handle_ = get_node()->add_on_set_parameters_callback(std::bind(
+      &CartesianImpedanceExampleController::onParameterUpdate, this, std::placeholders::_1));
 
   return CallbackReturn::SUCCESS;
 }
@@ -208,7 +204,7 @@ controller_interface::return_type CartesianImpedanceExampleController::update(
   Eigen::MatrixXd jacobian_transpose_pinv;
   double lambda = 0.2;
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian.transpose(),
-      Eigen::ComputeFullU | Eigen::ComputeFullV);
+                                        Eigen::ComputeFullU | Eigen::ComputeFullV);
   Eigen::JacobiSVD<Eigen::MatrixXd>::SingularValuesType sing_vals = svd.singularValues();
   Eigen::MatrixXd S = jacobian.transpose();
   S.setZero();
@@ -252,7 +248,8 @@ controller_interface::return_type CartesianImpedanceExampleController::update(
 }
 
 void CartesianImpedanceExampleController::updateMotionTarget(
-    double period_seconds, const Eigen::Quaterniond& orientation) {
+    double period_seconds,
+    const Eigen::Quaterniond& orientation) {
   elapsed_time_ += period_seconds;
   double angle = M_PI / 4.0 * (1 - std::cos(M_PI / 5.0 * elapsed_time_));
   double delta_x = 0.1 * std::sin(angle);
@@ -263,8 +260,7 @@ void CartesianImpedanceExampleController::updateMotionTarget(
   target_pose_buffer_.writeFromNonRT(motion_target);
 }
 
-Eigen::Matrix<double, 6, 1>
-CartesianImpedanceExampleController::computeError(
+Eigen::Matrix<double, 6, 1> CartesianImpedanceExampleController::computeError(
     const Eigen::Vector3d& position,
     const Eigen::Quaterniond& orientation,
     const Eigen::Affine3d& transform) const {
@@ -321,8 +317,7 @@ void CartesianImpedanceExampleController::setCartesianStiffnessCallback(
   response->error = "";
 }
 
-rcl_interfaces::msg::SetParametersResult
-CartesianImpedanceExampleController::onParameterUpdate(
+rcl_interfaces::msg::SetParametersResult CartesianImpedanceExampleController::onParameterUpdate(
     const std::vector<rclcpp::Parameter>& parameters) {
   rcl_interfaces::msg::SetParametersResult result;
   result.successful = true;

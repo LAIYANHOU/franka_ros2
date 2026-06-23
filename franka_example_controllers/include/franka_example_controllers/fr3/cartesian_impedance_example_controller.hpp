@@ -132,10 +132,9 @@ class CartesianImpedanceExampleController : public controller_interface::Control
   /// @param orientation Current end-effector orientation.
   /// @param transform Current end-effector transform.
   /// @return 6D error vector [position_error; orientation_error].
-  Eigen::Matrix<double, num_cartesian_dof, 1> computeError(
-      const Eigen::Vector3d& position,
-      const Eigen::Quaterniond& orientation,
-      const Eigen::Affine3d& transform) const;
+  Eigen::Matrix<double, num_cartesian_dof, 1> computeError(const Eigen::Vector3d& position,
+                                                           const Eigen::Quaterniond& orientation,
+                                                           const Eigen::Affine3d& transform) const;
 
   /// @brief Builds stiffness and damping matrices from a 6-vector of stiffness values.
   /// @param k Stiffness values for each Cartesian DOF.
