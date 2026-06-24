@@ -13,6 +13,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+find_package(Franka 0.19.0 REQUIRED)
+find_package(franka_hardware REQUIRED)
 find_package(gz_ros2_control REQUIRED)
 find_package(gz_sim_vendor REQUIRED)
 find_package(gz-sim REQUIRED)
@@ -21,12 +24,13 @@ find_package(pinocchio REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(realtime_tools REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 add_library(
         franka_gz_hardware_plugins
         SHARED
-        src/gazebo_gravity_compensation_system.cpp
+        src/franka_gazebo_hardware_interface.cpp
         src/gravity_compensation_model.cpp
 )
 
@@ -37,11 +41,15 @@ target_include_directories(franka_gz_hardware_plugins
 )
 
 ament_target_dependencies(franka_gz_hardware_plugins
+        ament_index_cpp
+        Franka
+        franka_hardware
         gz_ros2_control
         hardware_interface
         pluginlib
         rclcpp
         rclcpp_lifecycle
+        realtime_tools
 )
 
 target_link_libraries(franka_gz_hardware_plugins

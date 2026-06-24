@@ -20,6 +20,9 @@ controller_manager:
     gravity_compensation_example_controller:
       type: franka_example_controllers/GravityCompensationExampleController
 
+    model_example_controller:
+      type: franka_example_controllers/ModelExampleController
+
     cartesian_impedance_example_controller:
       type: franka_example_controllers/CartesianImpedanceExampleController
 
@@ -206,6 +209,11 @@ cartesian_impedance_example_controller:
     translational_stiffness: 150.0
     rotational_stiffness: 10.0
     nullspace_stiffness: 20.0
+
+model_example_controller:
+  ros__parameters:
+    robot_type: 'fr3'
+    arm_prefix: ''
 
 # Holds the prismatic spine against gravity (enabled globally in Gazebo).
 # On activation the JointTrajectoryController commands and holds the joint's
