@@ -66,9 +66,7 @@ def get_robot_description(context: LaunchContext):
 
     robot_description_config = xacro.process_file(
         franka_xacro_file,
-        mappings={
-            'gazebo': 'true',
-        }
+        mappings={}
     )
 
     if not isinstance(robot_description_config, xml.dom.minidom.Document):

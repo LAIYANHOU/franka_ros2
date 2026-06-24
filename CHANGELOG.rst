@@ -1,6 +1,22 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+UNRELEASED
+----------
+
+* refactor: decoupled simulation backend selection from the franka_hardware ros2_control
+  macros and removed all Gazebo-specific content from franka_description. The hardware
+  ``<plugin>`` block (real / mock / gazebo) and the gz_ros2_control ``<gazebo>`` system
+  element are now injected by the owning package (franka_bringup for real/mock, franka_gazebo
+  for gazebo) instead of being selected by ``xacro:if`` inside franka_hardware. Mode and
+  interface selection moved up to the entry-point URDFs as implementation-agnostic capability
+  flags (effort command, finger joint, passive base, self-collision geometry), replacing the
+  former ``gazebo`` / ``gazebo_effort`` semantic flags. franka_description no longer contains
+  any Gazebo tags, macros, or arguments — the Gazebo SDF/transmission machinery, the world
+  anchor, and self-collision suppression now live in franka_gazebo, making franka_description
+  simulator-agnostic. All robot × mode URDF expansions remain byte-identical to before the
+  refactor.
+
 v3.4.0 (2026-06-23)
 -------------------
 Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Jazzy

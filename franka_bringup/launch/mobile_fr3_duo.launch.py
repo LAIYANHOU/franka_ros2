@@ -145,7 +145,6 @@ def generate_robot_nodes(context):
         urdf_path,
         mappings={
             'robot_types': robot_types_str,
-            'robot_prefixes': robot_prefixes_str,
             'robot_ips': robot_ips_str,
             'hand': load_gripper_str,
             'use_fake_hardware': use_fake_hardware_str,
