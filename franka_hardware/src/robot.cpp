@@ -169,12 +169,6 @@ void Robot::writeOnceJointEfforts(const std::array<double, 7>& efforts) {
   if (torque_command_rate_limiter_active_) {
     torque_command.tau_J =
         franka::limitRate(franka::kMaxTorqueRate, torque_command.tau_J, current_state_.tau_J_d);
-    std::cout << "Torque command after rate limiting: ";
-    for (const auto& torque : current_state_.tau_J_d) {
-      std::cout << torque << " ";
-    }
-
-    std::cout << std::endl;
   }
   active_control_->writeOnce(torque_command);
 }
