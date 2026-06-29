@@ -161,7 +161,6 @@ def generate_robot_nodes(context):
         print('Error: No controller name provided. Please provide a controller name.')
         sys.exit(1)
 
-
     # Spawn the example as ros2_control controller
     nodes.append(
         Node(

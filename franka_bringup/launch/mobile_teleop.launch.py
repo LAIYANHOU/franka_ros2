@@ -56,7 +56,7 @@ def generate_robot_nodes(context):
     config = next(iter(configs.values()))
 
     namespace = str(config.get('namespace', ''))
-    
+
     # Define the additional nodes
     additional_nodes.append(
         Node(

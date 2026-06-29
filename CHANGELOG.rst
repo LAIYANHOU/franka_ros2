@@ -1,12 +1,27 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+UNRELEASED
+----------
+
+* refactor: decouple the simulation backend (real/mock/gazebo) from the
+  franka_hardware ros2_control macros (``franka_arm`` and ``tmrv0_2``). The hardware
+  ``<plugin>`` block and the gz_ros2_control ``<gazebo>`` system element are now
+  injected by the owning package (``franka_bringup`` for real/mock,
+  ``franka_gazebo_bringup`` for gazebo) instead of being selected by ``xacro:if``
+  inside franka_hardware. Mode/interface selection moved to the entry-point URDFs as
+  capability flags (``include_effort_command``, ``include_finger_joint``,
+  ``include_passive_base``), replacing the former ``gazebo`` / ``gazebo_effort``
+  flags. URDF expansions remain behavior-equivalent.
+* fix: collapse five duplicate top-level ``/**:`` keys in franka_gazebo_bringup's
+  ``franka_gazebo_controllers.yaml`` into one. YAML last-key-wins was silently
+  dropping the controller_manager type declarations, blocking the tmr gazebo launch.
+
 v2.5.1 (2026-07-07)
 -------------------
 Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Humble
 
 * feat: add tmr launch file in franka bringup and use it for the mobile teleop launch file
-
 
 v2.5.0 (2026-06-23)
 -------------------
