@@ -34,17 +34,17 @@ def generate_robot_nodes(context):
     robot_config_file = LaunchConfiguration('robot_config_file').perform(context)
     config_filepath = LaunchConfiguration('config_filepath').perform(context)
 
-    # Include the existing example.launch.py file
+    # Include the TMR-specific launch file
     additional_nodes.append(
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution(
-                    [FindPackageShare('franka_bringup'), 'launch', 'example.launch.py']
+                    [FindPackageShare('franka_bringup'), 'launch', 'tmrv0_2.launch.py']
                 )
             ),
             launch_arguments={
                 'robot_config_file': robot_config_file,
-                'controller_names': controller_names,
+                'controller_name': controller_names,
             }.items(),
         )
     )
