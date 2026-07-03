@@ -1,6 +1,13 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+UNRELEASED
+-------------------
+Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Humble
+
+* feat: add tmr launch file in franka bringup and use it for the mobile teleop launch file
+
+
 v2.5.0 (2026-06-23)
 -------------------
 Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Humble
