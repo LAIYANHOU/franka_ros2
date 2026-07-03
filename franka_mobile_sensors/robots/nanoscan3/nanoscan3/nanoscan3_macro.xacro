@@ -38,7 +38,7 @@
       <link name="${name}_mount">
         <visual>
           <geometry>
-            <mesh filename="file://$(find sick_safetyscanners2)/meshes/nanoscan3/MountingKit_2a.dae"/>
+            <mesh filename="package://sick_safetyscanners2/description/meshes/MountingKit_2a.dae"/>
           </geometry>
           <material name="black">
             <color rgba="0.0 0.0 0.0 1.0"/>
@@ -46,7 +46,7 @@
         </visual>
         <collision>
           <geometry>
-            <mesh filename="file://$(find sick_safetyscanners2)/meshes/nanoscan3/MountingKit_2a_collision.stl"/>
+            <mesh filename="package://sick_safetyscanners2/description/meshes/MountingKit_2a_collision.stl"/>
           </geometry>
         </collision>
       </link>
@@ -83,7 +83,7 @@
         <!-- These values were determined empirically -->
         <origin xyz="-0.01 -0.08 ${-sensor_z}" rpy="0 0 1.57" />
         <geometry>
-          <mesh filename="file://$(find sick_safetyscanners2)/description/meshes/NANS3.dae"/>
+          <mesh filename="package://sick_safetyscanners2/description/meshes/NANS3.dae"/>
         </geometry>
         <material name="black">
           <color rgba="0.0 0.0 0.0 1.0"/>
@@ -93,7 +93,7 @@
         <!-- These values were determined empirically -->
         <origin xyz="-0.01 -0.08 ${-sensor_z}" rpy="0 0 1.57" />
         <geometry>
-          <mesh filename="file://$(find sick_safetyscanners2)/description/meshes/NANS3_collision.stl"/>
+          <mesh filename="package://sick_safetyscanners2/description/meshes/NANS3_collision.stl"/>
         </geometry>
       </collision>
     </link>
