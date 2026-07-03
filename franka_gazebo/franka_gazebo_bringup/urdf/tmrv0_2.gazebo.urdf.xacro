@@ -35,6 +35,13 @@
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
       <parameters>$(find franka_gazebo_bringup)/config/franka_gazebo_controllers.yaml</parameters>
+      <!-- Bring the controller_manager up under the robot namespace so the mobile-base
+           spawners find it at /${robot_namespace}/controller_manager. -->
+      <xacro:if value="${'$(arg robot_namespace)' != ''}">
+        <ros>
+          <namespace>/$(arg robot_namespace)</namespace>
+        </ros>
+      </xacro:if>
     </plugin>
   </gazebo>
 

@@ -41,9 +41,11 @@
         arm_prefix="${modified_prefix}">
       <hardware_plugin>
         <!-- Default gz_ros2_control system handles position/velocity; under gazebo_effort
-             the gravity-compensation system is used so effort joints stay compensated. -->
+             the Franka gazebo hardware interface is used so effort joints stay gravity-
+             compensated and the robot model, state, and external-wrench interfaces are
+             exported in simulation. -->
         <xacro:if value="$(arg gazebo_effort)">
-          <plugin>franka_gazebo_hardware/GazeboGravityCompensationSystem</plugin>
+          <plugin>franka_gazebo_hardware/FrankaGazeboHardwareInterface</plugin>
         </xacro:if>
         <xacro:unless value="$(arg gazebo_effort)">
           <plugin>gz_ros2_control/GazeboSimSystem</plugin>

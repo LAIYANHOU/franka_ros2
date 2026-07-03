@@ -22,6 +22,23 @@ v2.5.1 (2026-07-07)
 Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Humble
 
 * feat: add tmr launch file in franka bringup and use it for the mobile teleop launch file
+Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Humble
+
+* feat: franka_gazebo: add robot model, full ``franka::RobotState`` and estimated
+  external-wrench (tcp force/torque) state interfaces to the gz_ros2_control system
+  plugin, so model-based and force/torque controllers activate in simulation like on
+  hardware. The plugin is renamed ``franka_gazebo_hardware/FrankaGazeboHardwareInterface``.
+* fix: franka_hardware: set the gz_ros2_control plugin ``<ros><namespace>`` for the
+  mobile robot (tmrv0_2) so the controller_manager comes up in the ``/mobile_base``
+  namespace and controllers load in simulation instead of the launch hanging on
+  ``robot_state_publisher service not available``.
+* feat: franka_gazebo: the simulated external wrench is expressed in the stiffness frame K
+  (``K_F_ext_hat_K`` and the ``_tcp`` force/torque interfaces), while ``O_F_ext_hat_K``
+  stays in the base frame; the wrench sign follows the reaction convention (a push in +x
+  reads a measured external force of -x).
+* feat: franka_gazebo: export the 16 ``<i>/cartesian_pose_state`` state interfaces from the
+  gz_ros2_control system plugin, so Cartesian-pose controllers activate in simulation like
+  on hardware.
 
 v2.5.0 (2026-06-23)
 -------------------

@@ -22,6 +22,7 @@ if(BUILD_TESTING)
   endfunction()
   add_ros_isolated_launch_test(test/test_gazebo_franka_arm_example_controller.py)
   add_ros_isolated_launch_test(test/test_gazebo_tmr_example_controller.py)
+  add_ros_isolated_launch_test(test/test_gazebo_contact_wrench.py TIMEOUT 600)
 endif()
 
 ament_package()
