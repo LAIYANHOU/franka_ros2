@@ -139,6 +139,8 @@ controller_interface::return_type SwerveDriveController::update_and_write_comman
                                            estimate_drive_velocity_wheel_2};
     swerve_kinematics_->forwardKinematics(steerings, velocities, vx, vy, wz);
     odometry_.update(vx, vy, wz, time);
+    x = odometry_.getX();
+    y = odometry_.getY();
     vx = odometry_.getLinearX();
     vy = odometry_.getLinearY();
     wz = odometry_.getAngular();
@@ -374,6 +376,13 @@ controller_interface::CallbackReturn SwerveDriveController::on_configure(
       std::make_shared<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>(odom_nav_pub_);
 
   odom_tf_message_.transforms.resize(1);
+
+  // Create the cmd_vel subscription by default (non-chained mode).
+  cmd_vel_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(
+      "~/cmd_vel", 100, [this](const geometry_msgs::msg::TwistStamped::SharedPtr msg) {
+        received_velocity_msg_.set(msg);
+        last_cmd_time_ = 0;
+      });
 
   return CallbackReturn::SUCCESS;
 }
