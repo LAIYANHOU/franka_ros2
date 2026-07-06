@@ -58,9 +58,6 @@ import xacro
 
 package_share = get_package_share_directory('franka_bringup')
 
-# constant for the controller name parameter
-CONTROLLER_EXAMPLE = 'controller'
-
 load_yaml = launch_utils.load_yaml
 
 
@@ -159,8 +156,6 @@ def generate_robot_nodes(context):
             ],
             output='screen',
         ),
-        # NOTE: franka_robot_state_broadcaster is NOT launched for TMR robots
-        # as it is not supported.
     ]
 
     # Spawn controller
@@ -169,36 +164,25 @@ def generate_robot_nodes(context):
         print('Error: No controller name provided. Please provide a controller name.')
         sys.exit(1)
 
-    if CONTROLLER_EXAMPLE in controller_name:
-        # Spawn the example as ros2_control controller
-        nodes.append(
-            Node(
-                package='controller_manager',
-                executable='spawner',
-                namespace=namespace,
-                arguments=[controller_name, '--controller-manager-timeout', '30'],
-                parameters=[
-                    PathJoinSubstitution(
-                        [
-                            FindPackageShare('franka_bringup'),
-                            'config',
-                            'controllers.yaml',
-                        ]
-                    )
-                ],
-                output='screen',
-            )
+    # Spawn the example as ros2_control controller
+    nodes.append(
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            namespace=namespace,
+            arguments=[controller_name, '--controller-manager-timeout', '30'],
+            parameters=[
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare('franka_bringup'),
+                        'config',
+                        'controllers.yaml',
+                    ]
+                )
+            ],
+            output='screen',
         )
-    else:
-        # Spawn the example as node
-        nodes.append(
-            Node(
-                package='franka_example_controllers',
-                executable=controller_name,
-                namespace=namespace,
-                output='screen',
-            )
-        )
+    )
 
     if use_rviz:
         nodes.append(
