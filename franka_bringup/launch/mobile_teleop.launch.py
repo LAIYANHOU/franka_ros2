@@ -34,17 +34,17 @@ def generate_robot_nodes(context):
     robot_config_file = LaunchConfiguration('robot_config_file').perform(context)
     config_filepath = LaunchConfiguration('config_filepath').perform(context)
 
-    # Include the existing example.launch.py file
+    # Include the TMR-specific launch file
     additional_nodes.append(
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution(
-                    [FindPackageShare('franka_bringup'), 'launch', 'example.launch.py']
+                    [FindPackageShare('franka_bringup'), 'launch', 'tmrv0_2.launch.py']
                 )
             ),
             launch_arguments={
                 'robot_config_file': robot_config_file,
-                'controller_names': controller_names,
+                'controller_name': controller_names,
             }.items(),
         )
     )
@@ -52,34 +52,37 @@ def generate_robot_nodes(context):
     # Load the robot configuration file
     configs = load_yaml(robot_config_file)
 
-    for _, config in configs.items():
-        namespace = config['namespace']
-        # Define the additional nodes
-        additional_nodes.append(
-            Node(
-                package='joy',
-                executable='joy_node',
-                name='joy_node',
-                namespace=namespace,
-                parameters=[
-                    {
-                        'dev': '/dev/input/js0',
-                        'deadzone': 0.3,
-                        'autorepeat_rate': 20.0,
-                    }
-                ],
-            ),
-        )
-        additional_nodes.append(
-            Node(
-                package='teleop_twist_joy',
-                executable='teleop_node',
-                name='teleop_twist_joy_node',
-                namespace=namespace,
-                parameters=[config_filepath],
-                remappings=[('cmd_vel', 'swerve_drive_controller/cmd_vel')],
-            ),
-        )
+    # Get the first config (assuming single TMR config in file)
+    config = next(iter(configs.values()))
+
+    namespace = str(config.get('namespace', ''))
+
+    # Define the additional nodes
+    additional_nodes.append(
+        Node(
+            package='joy',
+            executable='joy_node',
+            name='joy_node',
+            namespace=namespace,
+            parameters=[
+                {
+                    'dev': '/dev/input/js0',
+                    'deadzone': 0.3,
+                    'autorepeat_rate': 20.0,
+                }
+            ],
+        ),
+    )
+    additional_nodes.append(
+        Node(
+            package='teleop_twist_joy',
+            executable='teleop_node',
+            name='teleop_twist_joy_node',
+            namespace=namespace,
+            parameters=[config_filepath],
+            remappings=[('cmd_vel', 'swerve_drive_controller/cmd_vel')],
+        ),
+    )
     return additional_nodes
 
 
