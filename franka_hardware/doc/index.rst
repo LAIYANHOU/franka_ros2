@@ -63,12 +63,15 @@ for all Franka robot configurations. The macros live in ``franka_hardware/ros2_c
   ``configure_finger_joint``, ``configure_steering_joint``, ``configure_driving_joint``,
   ``general_purpose_io``, ``cartesian_velocity_io``, ``cartesian_pose_loop``, etc.)
 * ``franka_arm.ros2_control.xacro`` — single-arm configuration
-* ``fr3_duo.ros2_control.xacro`` — dual-arm configuration
-* ``mobile_fr3_duo.ros2_control.xacro`` — mobile dual-arm (TMR base + 2 arms)
 * ``tmrv0_2.ros2_control.xacro`` — standalone TMR base
 
 These are composed with ``franka_description`` robot models via thin wrappers in
 ``franka_bringup/urdf/`` to produce complete robot descriptions with hardware interfaces.
+
+The gazebo-only dual-arm descriptions (``fr3_duo.ros2_control.xacro`` and
+``mobile_fr3_duo.ros2_control.xacro``) live in ``franka_gazebo_bringup/urdf/``, the package
+that owns and consumes them. They reuse the shared building blocks above via
+``$(find franka_hardware)/ros2_control/franka_ros2_control_macros.xacro``.
 
 Error Recovery
 --------------
