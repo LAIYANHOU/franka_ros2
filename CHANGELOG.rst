@@ -10,6 +10,10 @@ Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Jazz
 UNRELEASED
 ----------
 
+* fix: add missing dependencies in package.xml for isolated builds
+  (``rclcpp_components`` in franka_hardware; ``rclcpp_lifecycle``, ``urdf``, ``eigen``,
+  ``controller_interface`` in franka_semantic_components). Fixes rosdep-based
+  fresh-environment builds. (community contribution: GitHub PRs #96, #169)
 * refactor: decoupled simulation backend selection from the franka_hardware ros2_control
   macros and removed all Gazebo-specific content from franka_description. The hardware
   ``<plugin>`` block (real / mock / gazebo) and the gz_ros2_control ``<gazebo>`` system
