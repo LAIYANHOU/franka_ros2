@@ -231,7 +231,7 @@ def generate_launch_description():
         name='joint_state_publisher',
         namespace=namespace,
         parameters=[
-            {'source_list': ['franka/joint_states', 'fr3_gripper/joint_states'], 'rate': 30}],
+            {'source_list': ['franka/joint_states', 'franka_gripper/joint_states'], 'rate': 30}],
     )
 
     franka_robot_state_broadcaster = Node(
