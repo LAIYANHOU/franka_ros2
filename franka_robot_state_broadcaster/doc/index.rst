@@ -1,14 +1,16 @@
 franka_robot_state_broadcaster
 ==============================
 
-This package contains read-only franka_robot_state_broadcaster controller.
+This package provides the read-only ``franka_robot_state_broadcaster`` controller.
 
 Functionality
 -------------
 
-The broadcaster publishes franka_robot_state topic to the topic named `/franka_robot_state_broadcaster/robot_state`.
-This controller node is spawned by franka_launch.py in the franka_bringup.
-Therefore, all the examples that include the franka_launch.py publishes the robot_state topic.
+The broadcaster publishes the Franka robot state on ``~/robot_state``. Without a
+namespace, this resolves to ``/franka_robot_state_broadcaster/robot_state``.
+
+This controller is spawned by ``franka.launch.py`` in ``franka_bringup``. Therefore,
+any setup that launches ``franka.launch.py`` also publishes the robot state topic.
 
 Usage
 -----
@@ -22,19 +24,33 @@ The robot state broadcaster is automatically started when you launch the robot u
 Parameters
 ----------
 
-* ``convenience_publish_rate`` (int, default: 1000, range: [1, 1000]):
-  Publish rate in Hz for convenience topics. The full robot state always
-  publishes at the controller update rate (1 kHz). Set this to a lower value
-  (e.g. 100) to reduce bandwidth for convenience topics while keeping the full
-  state at 1 kHz.
+.. list-table::
+    :header-rows: 1
 
-  Example in ``controllers.yaml``:
+    * - Name
+      - Type
+      - Default
+      - Description
+    * - ``robot_type``
+      - string
+      - ``fr3``
+      - Robot type used to resolve the state interface names, for example ``fr3/...``.
+    * - ``arm_prefix``
+      - string
+      - ``''``
+      - Optional prefix added before ``robot_type`` when resolving state interface names in multi-arm setups.
+    * - ``convenience_publish_rate``
+      - int
+      - ``1000``
+      - Publish rate in Hz for convenience topics. The full robot state always publishes at the controller update rate (1 kHz). Set this lower, for example to ``100``, to reduce bandwidth for convenience topics while keeping the full state at 1 kHz.
 
-  .. code-block:: yaml
+Example in ``controllers.yaml``:
 
-      franka_robot_state_broadcaster:
-        ros__parameters:
-          convenience_publish_rate: 100
+.. code-block:: yaml
+
+    franka_robot_state_broadcaster:
+      ros__parameters:
+        convenience_publish_rate: 100
 
 Published Topics
 ----------------
@@ -46,8 +62,9 @@ Full robot state (reliable QoS):
 
 Convenience topics (best_effort QoS):
 
-The following topics are published at the rate configured by ``convenience_publish_rate``.
-They use **best_effort** QoS to avoid blocking the real-time publish thread.
+The following topics are published at the rate configured by
+``convenience_publish_rate``. They use **best_effort** QoS to avoid blocking the
+real-time publish thread.
 
 .. important::
 
@@ -69,4 +86,6 @@ They use **best_effort** QoS to avoid blocking the real-time publish thread.
 Integration
 -----------
 
-This broadcaster integrates with the :doc:`franka_semantic_components <../../franka_semantic_components/doc/index>` package to provide safe access to robot state information for controllers and other nodes.
+This broadcaster integrates with the
+:doc:`franka_semantic_components <../../franka_semantic_components/doc/index>` package
+to provide safe access to robot state information for controllers and other nodes.

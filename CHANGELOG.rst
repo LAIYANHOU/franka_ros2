@@ -10,6 +10,11 @@ Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Jazz
 UNRELEASED
 ----------
 
+* docs: comprehensive documentation audit and fixes across 12 packages — corrected
+  inaccurate launch arguments, removed references to non-existent files, fixed API method
+  names, updated parameter names to match code, added undocumented launch args, improved
+  grammar and user experience. Fixed tuple default bug in
+  franka_vision_and_manipulation_kit launch file.
 * fix: add missing dependencies in package.xml for isolated builds
   (``rclcpp_components`` in franka_hardware; ``rclcpp_lifecycle``, ``urdf``, ``eigen``,
   ``controller_interface`` in franka_semantic_components). Fixes rosdep-based

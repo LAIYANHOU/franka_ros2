@@ -4,32 +4,59 @@ franka_mobile_sensors
 Package Overview
 ----------------
 
-This package contains launch files and run-time configurations for using sensors on Franka Robotics mobile research robots.
-It provides integration for:
+This package contains launch files and runtime configuration for the sensor suite on Franka
+Robotics mobile research robots. It integrates:
 
 * **RealSense Cameras** - Intel RealSense depth cameras (D455)
 * **SICK Safety Scanners** - SICK nanoScan3 safety lidars
 * **Olive Robotics IMU** - Olive Robotics olixSense X1 IMU
 
-The package handles sensor configuration, driver launching, and RViz visualization for the complete sensor suite.
+The package handles sensor configuration, driver startup, and RViz visualization for the
+complete suite.
 
 Usage
 -----
 
-Launch the complete sensor suite with::
+Start the complete sensor suite with the default configuration:
+
+.. code-block:: shell
 
     ros2 launch franka_mobile_sensors franka_mobile_sensors.launch.py \
-      robot_type:=<robot_type> \
-      config_file:=<config_name>
+        config_file:=default_sensor_suite \
+        robot_xacro:=tmrv0_2_with_sensors.urdf.xacro
 
 Launch Arguments
 ^^^^^^^^^^^^^^^^
 
-* ``start_cameras`` (default: ``true``) - Start RealSense camera drivers
-* ``start_lidars`` (default: ``true``) - Start SICK safety scanner drivers
-* ``start_rviz`` (default: ``true``) - Start RViz visualization
-* ``robot_type`` (default: ``tmrv0_2``) - ID of the robot type for visualization
-* ``config_file`` (default: ``default_sensor_suite``) - Sensor suite configuration (without .yaml extension)
+* ``start_cameras``
+
+  * Type: ``bool``
+  * Default: ``true``
+  * Description: Whether to start the RealSense camera drivers.
+
+* ``start_lidars``
+
+  * Type: ``bool``
+  * Default: ``true``
+  * Description: Whether to start the SICK safety scanner drivers.
+
+* ``start_rviz``
+
+  * Type: ``bool``
+  * Default: ``true``
+  * Description: Whether to start RViz visualization.
+
+* ``config_file``
+
+  * Type: ``string``
+  * Default: ``default_sensor_suite``
+  * Description: Configuration file to use, without the ``.yaml`` extension.
+
+* ``robot_xacro``
+
+  * Type: ``string``
+  * Default: ``tmrv0_2_with_sensors.urdf.xacro``
+  * Description: XACRO file for the robot model used in RViz.
 
 Configuration
 -------------
@@ -68,20 +95,29 @@ To create a custom configuration:
 
 1. Copy ``config/default_sensor_suite.yaml`` to ``config/my_custom_suite.yaml``
 2. Modify camera/lidar lists and reference existing or new device profiles
-3. Launch with: ``config_file:=my_custom_suite``
+3. Launch the suite with your new configuration:
 
-Example
--------
+   .. code-block:: shell
 
-To launch only cameras without lidars and RViz::
+      ros2 launch franka_mobile_sensors franka_mobile_sensors.launch.py \
+          config_file:=my_custom_suite
+
+Examples
+--------
+
+Start only the cameras:
+
+.. code-block:: shell
 
     ros2 launch franka_mobile_sensors franka_mobile_sensors.launch.py \
-      start_cameras:=true \
-      start_lidars:=false \
-      start_rviz:=false
+        start_cameras:=true \
+        start_lidars:=false \
+        start_rviz:=false
 
-To use a custom sensor configuration::
+Use a custom sensor configuration:
+
+.. code-block:: shell
 
     ros2 launch franka_mobile_sensors franka_mobile_sensors.launch.py \
-      config_file:=my_custom_suite \
-      robot_type:=tmrv0_2
+        config_file:=my_custom_suite \
+        robot_xacro:=tmrv0_2_with_sensors.urdf.xacro

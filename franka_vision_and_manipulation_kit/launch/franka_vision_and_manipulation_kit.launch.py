@@ -60,7 +60,7 @@ def generate_launch_description() -> LaunchDescription:
             'config_file_path',
             default_value=(
                 'package://franka_vision_and_manipulation_kit/config/'
-                'default_config.yaml',
+                'default_config.yaml'
             ),
             description=('Configuration file to use. Either a file path or a ROS package resource '
                          '(e.g. package://my_package/config.yaml)'),
@@ -69,7 +69,7 @@ def generate_launch_description() -> LaunchDescription:
             'xacro_file_path',
             default_value=(
                 'package://franka_vision_and_manipulation_kit/robots/'
-                'vision_and_manipulation_kit.urdf.xacro',
+                'vision_and_manipulation_kit.urdf.xacro'
             ),
             description=('Robot xacro file to use. Either a file path or a ROS package resource '
                          '(e.g. package://my_package/robot.xacro)'),
