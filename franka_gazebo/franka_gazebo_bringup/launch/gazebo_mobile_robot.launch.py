@@ -33,7 +33,6 @@ from launch_ros.substitutions import FindPackageShare
 
 
 NAMESPACE = 'mobile_base'
-CONTROLLER = 'mobile_cartesian_velocity_with_ik_example_controller'
 
 
 def set_gz_sim_resource_path(context, with_sensors):
@@ -120,7 +119,9 @@ def launch_all(context: LaunchContext, with_sensors, world):
         package='controller_manager', executable='spawner',
         namespace=NAMESPACE,
         arguments=[
-            CONTROLLER,
+            'swerve_ik_controller',
+            'swerve_drive_controller',
+            '--activate-as-group',
             '--controller-manager', f'/{NAMESPACE}/controller_manager',
             '--controller-manager-timeout', '120',
             '--service-call-timeout', '60',
