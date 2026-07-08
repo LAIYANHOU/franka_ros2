@@ -247,6 +247,23 @@ You normally don't need to configure any of this — it is wired up by the examp
 files. Gravity being enabled is engine-independent and does not depend on a particular
 physics engine forwarding a gravity-disable flag.
 
+Simulated Robot State and Interfaces
+------------------------------------
+
+The Gazebo hardware interface publishes a faithful ``franka::RobotState`` and exports the
+same state interfaces as the real hardware, so model-based controllers, gravity compensation
+and Cartesian-pose controllers work in simulation just as they do on the robot. The exported
+state interfaces are:
+
+* ``robot_model`` and ``robot_state`` — the full model and state surface;
+* the ``_tcp`` force/torque interfaces — the estimated external wrench at the TCP;
+* the 16 ``<i>/cartesian_pose_state`` interfaces — the current Cartesian pose, so
+  Cartesian-pose controllers can activate in simulation.
+
+The estimated external wrench is reported in two frames: ``O_F_ext_hat_K`` is expressed in
+the base frame and ``K_F_ext_hat_K`` in the stiffness frame K. The wrench sign follows the
+reaction convention — a push in +x reads a measured external force of -x.
+
 Troubleshooting
 ---------------
 

@@ -22,6 +22,7 @@ if(BUILD_TESTING)
     add_launch_test("${path}" RUNNER "${RUNNER}" ${ARGN})
   endfunction()
   add_ros_isolated_launch_test(test/test_gazebo_launch.py TIMEOUT 600)
+  add_ros_isolated_launch_test(test/test_gazebo_contact_wrench.py TIMEOUT 600)
 endif()
 
 ament_package()
