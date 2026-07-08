@@ -4,6 +4,10 @@ Changelog for package franka_ros2
 UNRELEASED
 ----------
 
+* fix: add missing dependencies in package.xml for isolated builds
+  (``rclcpp_components`` in franka_hardware; ``rclcpp_lifecycle``, ``urdf``,
+  ``eigen`` in franka_semantic_components). Fixes rosdep-based fresh-environment
+  builds. (community contribution: GitHub PRs #96, #169)
 * refactor: decouple the simulation backend (real/mock/gazebo) from the
   franka_hardware ros2_control macros (``franka_arm`` and ``tmrv0_2``). The hardware
   ``<plugin>`` block and the gz_ros2_control ``<gazebo>`` system element are now
