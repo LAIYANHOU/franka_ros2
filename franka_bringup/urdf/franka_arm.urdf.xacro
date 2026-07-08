@@ -19,21 +19,30 @@
   <xacro:arg name="robot_ip" default=""/>
   <xacro:arg name="use_fake_hardware" default="false"/>
   <xacro:arg name="fake_sensor_commands" default="false"/>
-  <xacro:arg name="gazebo_effort" default="false"/>
   <xacro:arg name="is_async" default="false"/>
   <xacro:arg name="thread_priority" default="50"/>
 
   <!-- ros2_control hardware interface -->
   <xacro:franka_arm_ros2_control
       robot_type="$(arg robot_type)"
-      robot_ip="$(arg robot_ip)"
-      use_fake_hardware="$(arg use_fake_hardware)"
-      fake_sensor_commands="$(arg fake_sensor_commands)"
-      gazebo="$(arg gazebo)"
-      hand="$(arg hand)"
-      gazebo_effort="$(arg gazebo_effort)"
+      include_effort_command="true"
+      include_finger_joint="false"
       arm_prefix="${modified_prefix}"
       is_async="$(arg is_async)"
-      thread_priority="$(arg thread_priority)"/>
+      thread_priority="$(arg thread_priority)">
+    <hardware_plugin>
+      <!-- Real-vs-mock selection stays at the bringup entry level. -->
+      <xacro:if value="$(arg use_fake_hardware)">
+        <plugin>mock_components/GenericSystem</plugin>
+        <param name="mock_sensor_commands">$(arg fake_sensor_commands)</param>
+        <param name="state_following_offset">0.0</param>
+      </xacro:if>
+      <xacro:unless value="$(arg use_fake_hardware)">
+        <plugin>franka_hardware/FrankaHardwareInterface</plugin>
+        <param name="robot_ip">$(arg robot_ip)</param>
+        <param name="arm_prefix">${modified_prefix}</param>
+      </xacro:unless>
+    </hardware_plugin>
+  </xacro:franka_arm_ros2_control>
 
 </robot>
