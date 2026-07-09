@@ -19,6 +19,21 @@ UNRELEASED
   ``fr3_controllers.yaml`` and ``moveit.launch.py`` referenced ``fr3_gripper``
   but the node is launched as ``franka_gripper``, breaking gripper action commands
   and joint state aggregation in MoveIt. (GitHub PR #206)
+* test: comprehensive no-hardware test suite
+
+  - Add parameterized controller load test for all 16 example controllers
+  - Add launch file parsing validation for 19 first-party launch files
+  - Add fake-hardware integration tests (controller spawn, activate, verify)
+  - Fix ``test_use_fake_hardware.config.yaml`` to actually use fake hardware
+  - Register ``test_gripper_topic_consistency.py`` in franka_fr3_moveit_config
+
+* ci: improve Jenkins pipeline test coverage
+
+  - Fix package regex to include ``mobile_fr3_duo_trajectory_controller`` and
+    ``franka_bringup`` structural tests (previously silently dropped)
+  - Isolate Gazebo tests into separate optional stage
+  - Add ``executeGazeboTests`` parameter (default: false)
+
 * fix: add missing dependencies in package.xml for isolated builds
   (``rclcpp_components`` in franka_hardware; ``rclcpp_lifecycle``, ``urdf``, ``eigen``,
   ``controller_interface`` in franka_semantic_components). Fixes rosdep-based

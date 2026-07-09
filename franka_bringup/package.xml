@@ -38,11 +38,19 @@
   <test_depend>launch_ros</test_depend>
   <test_depend>launch_testing</test_depend>
   <test_depend>launch_testing_ament_cmake</test_depend>
+  <test_depend>controller_manager_msgs</test_depend>
+  <test_depend>geometry_msgs</test_depend>
+  <test_depend>joy</test_depend>
   <test_depend>rclpy</test_depend>
   <test_depend>rcl_interfaces</test_depend>
   <test_depend>sensor_msgs</test_depend>
+  <test_depend>teleop_twist_joy</test_depend>
   <test_depend>franka_msgs</test_depend>
   <test_depend>franka_gazebo_bringup</test_depend>
+  <test_depend>franka_mobile_fr3_duo_moveit_config</test_depend>
+  <test_depend>franka_gripper</test_depend>
+  <test_depend>franka_mobile_sensors</test_depend>
+  <test_depend>franka_vision_and_manipulation_kit</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

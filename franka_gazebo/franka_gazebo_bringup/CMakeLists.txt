@@ -23,6 +23,8 @@ if(BUILD_TESTING)
   endfunction()
   add_ros_isolated_launch_test(test/test_gazebo_launch.py TIMEOUT 600)
   add_ros_isolated_launch_test(test/test_gazebo_contact_wrench.py TIMEOUT 600)
+  add_ros_isolated_launch_test(test/test_gazebo_fr3_duo.py TIMEOUT 120)
+  add_ros_isolated_launch_test(test/test_gazebo_mobile_fr3_duo.py TIMEOUT 120)
 endif()
 
 ament_package()
