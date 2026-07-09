@@ -121,3 +121,18 @@ Use a custom sensor configuration:
     ros2 launch franka_mobile_sensors franka_mobile_sensors.launch.py \
         config_file:=my_custom_suite \
         robot_xacro:=tmrv0_2_with_sensors.urdf.xacro
+
+Gazebo Simulation
+-----------------
+
+The mobile sensor suite can be simulated in Gazebo without physical hardware. Use the
+``with_sensors:=true`` argument on the Mobile FR3 Duo Gazebo launch file:
+
+.. code-block:: shell
+
+    ros2 launch franka_gazebo_bringup gazebo_mobile_fr3_duo_example.launch.py with_sensors:=true
+
+This simulates all 7 mobile platform sensors (4× D455 cameras, 2× LiDARs, 1× IMU) with
+proper kinematic attachment and topic bridging. See the
+:doc:`franka_gazebo_bringup documentation <../../franka_gazebo/franka_gazebo_bringup/doc/index>`
+for full details on available topics and launch arguments.

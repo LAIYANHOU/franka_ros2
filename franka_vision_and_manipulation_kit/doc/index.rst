@@ -79,3 +79,26 @@ Example configuration YAML file::
       camera:
         serial_no: "_YYYYYYYYYYYY"
         camera_namespace: right
+
+Gazebo Simulation
+-----------------
+
+The Vision and Manipulation Kit can be simulated in Gazebo without physical hardware. Use the
+``with_sensors:=true`` argument on the corresponding Gazebo launch file:
+
+**FR3 Duo:**
+
+.. code-block:: shell
+
+    ros2 launch franka_gazebo_bringup gazebo_fr3_duo_example.launch.py with_sensors:=true
+
+**Mobile FR3 Duo:**
+
+.. code-block:: shell
+
+    ros2 launch franka_gazebo_bringup gazebo_mobile_fr3_duo_example.launch.py with_sensors:=true
+
+This simulates the kit's sensors (2× wrist D405 cameras, 1× ZED Mini head camera) and includes
+Robotiq grippers instead of the default Franka Hand. See the
+:doc:`franka_gazebo_bringup documentation <../../franka_gazebo/franka_gazebo_bringup/doc/index>`
+for full details on available topics and launch arguments.

@@ -213,7 +213,7 @@ Namespace**.
 To run any example controller, make sure to add your desired configuration in `franka.config.yaml` and run:
 
 ```bash
-ros2 launch franka_bringup example.launch.py controller_names:=joint_impedance_example_controller
+ros2 launch franka_bringup example.launch.py controller_names:=your_desired_controller
 ```
 You can select one of the controllers from `controllers.yaml`.
 
