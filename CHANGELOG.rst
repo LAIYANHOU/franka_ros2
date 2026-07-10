@@ -15,6 +15,10 @@ UNRELEASED
   names, updated parameter names to match code, added undocumented launch args, improved
   grammar and user experience. Fixed tuple default bug in
   franka_vision_and_manipulation_kit launch file.
+* fix: align MoveIt gripper controller name with actual gripper node name.
+  ``fr3_controllers.yaml`` and ``moveit.launch.py`` referenced ``fr3_gripper``
+  but the node is launched as ``franka_gripper``, breaking gripper action commands
+  and joint state aggregation in MoveIt. (GitHub PR #206)
 * fix: add missing dependencies in package.xml for isolated builds
   (``rclcpp_components`` in franka_hardware; ``rclcpp_lifecycle``, ``urdf``, ``eigen``,
   ``controller_interface`` in franka_semantic_components). Fixes rosdep-based
