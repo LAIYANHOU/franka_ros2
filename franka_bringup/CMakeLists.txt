@@ -29,16 +29,29 @@ if(BUILD_TESTING)
 
   function(add_ros_isolated_launch_test path)
     set(RUNNER "${ament_cmake_ros_DIR}/run_test_isolated.py")
-    add_launch_test("${path}" RUNNER "${RUNNER}" ARGS "robot_ip:=${ROBOT_IP}" TIMEOUT 500)
+    if(ARGN)
+      add_launch_test("${path}" RUNNER "${RUNNER}" ARGS ${ARGN} TIMEOUT 500)
+    else()
+      add_launch_test("${path}" RUNNER "${RUNNER}" TIMEOUT 500)
+    endif()
   endfunction()
 
-  add_ros_isolated_launch_test(test/test_hardware_example_controllers.py)
-  add_ros_isolated_launch_test(test/test_hardware_generic_controller.py)
+  add_ros_isolated_launch_test(test/test_hardware_example_controllers.py "robot_ip:=${ROBOT_IP}")
+  add_ros_isolated_launch_test(test/test_hardware_generic_controller.py "robot_ip:=${ROBOT_IP}")
+  # Fake-hardware (no-robot) integration tests. fr3_duo / mobile_fr3_duo are
+  # jazzy-only and are intentionally not ported to humble. TMR fake-hardware is
+  # also not ported: humble's TMR ros2_control description exposes
+  # cartesian_velocity GPIO command interfaces that mock_components/GenericSystem
+  # cannot satisfy, so the sim controller_manager aborts on launch (the jazzy fix
+  # relies on franka_hardware assets that do not exist on humble).
+  add_ros_isolated_launch_test(test/test_fake_hardware_controllers.py)
+  add_ros_isolated_launch_test(test/test_teleop_plumbing.py)
 
   find_package(ament_cmake_pytest REQUIRED)
   ament_add_pytest_test(test_franka_arm_interfaces test/test_franka_arm_interfaces.py)
   ament_add_pytest_test(test_xacro_path_resolution test/test_xacro_path_resolution.py)
   ament_add_pytest_test(test_gazebo_wrapper_expansion test/test_gazebo_wrapper_expansion.py)
+  ament_add_pytest_test(test_launch_file_parsing test/test_launch_file_parsing.py)
 
   install(
     DIRECTORY test

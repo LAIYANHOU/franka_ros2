@@ -121,19 +121,14 @@ if(BUILD_TESTING)
     ament_flake8()
     ament_pep257()
     ament_xmllint()
-    ament_add_gmock(${PROJECT_NAME}_test
-        test/test_load_gravity_compensation_controller.cpp
+    # Single GTest binary that loads every example controller registered in
+    # franka_example_controllers.xml (one case each). Replaces the former
+    # per-controller pure-load tests (gravity_compensation, move_to_start).
+    ament_add_gmock(${PROJECT_NAME}_test_load_all
+        test/test_load_all_example_controllers.cpp
     )
-    target_include_directories(${PROJECT_NAME}_test PRIVATE include)
-    ament_target_dependencies(${PROJECT_NAME}_test
-        controller_manager
-        ros2_control_test_assets
-    )
-
-    ament_add_gmock(${PROJECT_NAME}_test_load_move_to_start
-        test/test_load_move_to_start_example_controller.cpp)
-    target_include_directories(${PROJECT_NAME}_test_load_move_to_start PRIVATE include)
-    ament_target_dependencies(${PROJECT_NAME}_test_load_move_to_start
+    target_include_directories(${PROJECT_NAME}_test_load_all PRIVATE include)
+    ament_target_dependencies(${PROJECT_NAME}_test_load_all
         controller_manager
         ros2_control_test_assets
     )

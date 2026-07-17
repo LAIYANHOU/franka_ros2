@@ -25,7 +25,7 @@ from launch.actions import (
     IncludeLaunchDescription,
     Shutdown
 )
-from launch.conditions import UnlessCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     Command,
@@ -80,8 +80,10 @@ def generate_launch_description():
     )
 
     robot_description_config = Command(
-        [FindExecutable(name='xacro'), ' ', franka_xacro_file, ' hand:=', load_gripper, ' robot_type:=fr3',
-         ' robot_ip:=', robot_ip, ' ee_id:=', ee_id, ' use_fake_hardware:=', use_fake_hardware,
+        [FindExecutable(name='xacro'), ' ', franka_xacro_file,
+         ' hand:=', load_gripper, ' robot_type:=fr3',
+         ' robot_ip:=', robot_ip, ' ee_id:=', ee_id,
+         ' use_fake_hardware:=', use_fake_hardware,
          ' fake_sensor_commands:=', fake_sensor_commands])
 
     robot_description = {'robot_description': ParameterValue(
@@ -180,6 +182,7 @@ def generate_launch_description():
             ompl_planning_pipeline_config,
             kinematics_yaml,
         ],
+        condition=IfCondition(LaunchConfiguration('use_rviz')),
     )
 
     # Publish TF
@@ -271,6 +274,9 @@ def generate_launch_description():
         default_value='false',
         description="Fake sensor commands. Only valid when '{}' is true".format(
             use_fake_hardware_parameter_name))
+    use_rviz_arg = DeclareLaunchArgument(
+        'use_rviz', default_value='true', description='Launch RViz'
+    )
     gripper_launch_file = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([PathJoinSubstitution(
             [FindPackageShare('franka_gripper'), 'launch', 'gripper.launch.py'])]),
@@ -286,6 +292,7 @@ def generate_launch_description():
          use_fake_hardware_arg,
          fake_sensor_commands_arg,
          db_arg,
+         use_rviz_arg,
          rviz_node,
          robot_state_publisher,
          run_move_group_node,
