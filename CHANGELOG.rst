@@ -21,10 +21,11 @@ UNRELEASED
   and joint state aggregation in MoveIt. (GitHub PR #206)
 * test: comprehensive no-hardware test suite
 
-  - Add parameterized controller load test for all 16 example controllers
+  - Add controller load test covering all 16 example controllers (one GTest case each)
   - Add launch file parsing validation for 19 first-party launch files
   - Add fake-hardware integration tests (controller spawn, activate, verify)
-  - Fix ``test_use_fake_hardware.config.yaml`` to actually use fake hardware
+  - Add fake-hardware test config files
+    (``test_fake_hardware_{fr3,fr3_duo,mobile_fr3_duo,tmr}.config.yaml``)
   - Register ``test_gripper_topic_consistency.py`` in franka_fr3_moveit_config
 
 * ci: improve Jenkins pipeline test coverage

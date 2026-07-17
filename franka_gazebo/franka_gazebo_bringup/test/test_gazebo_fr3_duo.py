@@ -19,9 +19,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from gazebo_test_utils import (  # noqa: E402
-    GazeboShutdownTestBase, GazeboTestBase, make_gazebo_test_description,
-)
+# Import the module (not the classes) so the shared base TestCases are NOT pulled
+# into this module's namespace. launch_testing collects every unittest.TestCase in
+# the module as an active (pre-shutdown) test; if GazeboShutdownTestBase were a
+# module attribute it would run as an active test and its setUp would call
+# ensure_gz_sim_not_running(), killing the live simulation mid-test.
+import gazebo_test_utils  # noqa: E402
 
 import launch_testing  # noqa: E402
 
@@ -35,10 +38,10 @@ EXPECTED_ARM_JOINTS = {
 
 def generate_test_description():
     """Launch the FR3 Duo Gazebo example in headless mode."""
-    return make_gazebo_test_description('gazebo_fr3_duo_example.launch.py')
+    return gazebo_test_utils.make_gazebo_test_description('gazebo_fr3_duo_example.launch.py')
 
 
-class TestGazeboFr3Duo(GazeboTestBase):
+class TestGazeboFr3Duo(gazebo_test_utils.GazeboTestBase):
     """Verify the FR3 Duo Gazebo launch publishes both arm joint states."""
 
     NODE_NAME = 'gazebo_fr3_duo_test'
@@ -54,7 +57,7 @@ class TestGazeboFr3Duo(GazeboTestBase):
 
 
 @launch_testing.post_shutdown_test()
-class TestGazeboFr3DuoShutdown(GazeboShutdownTestBase):
+class TestGazeboFr3DuoShutdown(gazebo_test_utils.GazeboShutdownTestBase):
     """Verify the FR3 Duo Gazebo launch exits without unexpected errors."""
 
     pass

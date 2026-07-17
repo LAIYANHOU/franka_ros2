@@ -44,12 +44,29 @@ ament_target_dependencies(franka_gz_hardware_plugins
         ament_index_cpp
         Franka
         franka_hardware
-        gz_ros2_control
         hardware_interface
         pluginlib
         rclcpp
         rclcpp_lifecycle
         realtime_tools
+)
+
+# gz_ros2_control provides the GazeboSimSystemInterface base class as headers
+# only. Deliberately depend on it for include directories WITHOUT linking its
+# libraries: libgz_hardware_plugins.so / libgz_ros2_control-system.so are
+# class_loader/pluginlib plugins and must be loaded exclusively through pluginlib
+# at runtime. Linking them (as ament_target_dependencies would) adds a DT_NEEDED
+# that makes the dynamic loader run GazeboSimSystem's plugin registration outside
+# class_loader's tracking, so the createSharedInstance("gz_ros2_control/GazeboSimSystem")
+# call in initSim() then fails with "no factory exists for it".
+# ${gz_ros2_control_INCLUDE_DIRS} carries the transitive dependency headers
+# (controller_manager, hardware_interface, ...), and the imported system target
+# carries the package's own include/gz_ros2_control prefix. Taking include
+# directories only (never the target itself) keeps the plugin libraries off the
+# link interface.
+target_include_directories(franka_gz_hardware_plugins SYSTEM PUBLIC
+        ${gz_ros2_control_INCLUDE_DIRS}
+        $<TARGET_PROPERTY:gz_ros2_control::gz_ros2_control-system,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
 target_link_libraries(franka_gz_hardware_plugins

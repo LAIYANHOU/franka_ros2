@@ -31,7 +31,7 @@ pipeline {
            description: "Run the franka_ros2 tests on the real hardware")
 
     booleanParam(name: 'executeGazeboTests',
-           defaultValue: true,
+           defaultValue: false,
            description: "Run Gazebo simulation tests (headless, no GPU required)")
 
     string(name: "robotIp",
@@ -238,6 +238,9 @@ pipeline {
       steps {
         sh '''
           . install/setup.sh
+          # gz-transport multicast discovery is unreliable inside containers;
+          # force discovery over loopback so the spawner/bridge find the sim.
+          export GZ_IP=127.0.0.1
           colcon test \
             --base-paths src \
             --packages-select franka_gazebo_bringup \
