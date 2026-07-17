@@ -17,7 +17,10 @@
 import importlib.util
 import os
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import (
+    get_package_share_directory,
+    PackageNotFoundError,
+)
 
 from launch import LaunchDescription
 
@@ -51,7 +54,15 @@ def load_launch_description(
     package_name: str, launch_file_name: str
 ) -> tuple[str, LaunchDescription]:
     """Load a launch file as a Python module and return its LaunchDescription."""
-    package_directory = get_package_share_directory(package_name)
+    # This test intentionally spans launch files owned by other packages (e.g.
+    # the MoveIt configs). Those cannot be declared as franka_bringup test
+    # dependencies without a circular dependency, so in isolated
+    # (--packages-up-to) builds they may be absent. Skip rather than fail there;
+    # full-workspace CI still exercises every launch file.
+    try:
+        package_directory = get_package_share_directory(package_name)
+    except PackageNotFoundError:
+        pytest.skip(f'Package {package_name} not available in this build')
     launch_file = os.path.join(package_directory, 'launch', launch_file_name)
 
     assert os.path.exists(launch_file), f'Launch file not found: {launch_file}'

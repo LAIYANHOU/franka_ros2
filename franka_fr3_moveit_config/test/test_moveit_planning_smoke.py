@@ -136,8 +136,8 @@ class TestMoveItPlanningSmoke(unittest.TestCase):
 
     def _wait_for_move_group_action(self):
         """Wait for a compatible MoveGroup action server to become available."""
-        deadline = time.time() + 30.0
-        while time.time() < deadline:
+        deadline = time.monotonic() + 30.0
+        while time.monotonic() < deadline:
             for action_name in MOVE_GROUP_ACTION_NAMES:
                 client = self.move_group_clients[action_name]
                 if client.wait_for_server(timeout_sec=0.5):

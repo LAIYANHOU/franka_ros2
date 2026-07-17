@@ -11,7 +11,7 @@ what hardware they require.
 | Fake-hardware integration | ❌ | launch_testing | Verify controller lifecycle with `mock_components/GenericSystem` |
 | Interface validation | ❌ | pytest | Assert URDF xacro expands to correct ros2_control interfaces |
 | Launch file parsing | ❌ | pytest | Verify all launch files import and generate valid descriptions |
-| Teleop plumbing | ❌ | pytest | Verify Joy→cmd_vel pipeline works |
+| Teleop plumbing | ❌ | launch_testing | Verify Joy→cmd_vel pipeline works |
 | Controller ordering | ❌ | launch_testing | Verify startup ordering, no error states |
 | Hardware smoke tests | ✅ | launch_testing | Run controllers on real robot for fixed duration |
 | Gazebo integration | ❌* | launch_testing | Controller tests against Gazebo simulation |
@@ -23,7 +23,8 @@ what hardware they require.
 ```
 test/
 ├── config/                              # YAML configs for test scenarios
-│   ├── test_use_fake_hardware.config.yaml   # FR3 single-arm (fake hw)
+│   ├── test_use_fake_hardware.config.yaml   # FR3 single-arm (use_fake_hardware=false)
+│   ├── test_fake_hardware_fr3.config.yaml   # FR3 single-arm (fake hw)
 │   ├── test_fake_hardware_fr3_duo.config.yaml
 │   ├── test_fake_hardware_mobile_fr3_duo.config.yaml
 │   ├── test_0.config.yaml ... test_1.config.yaml  # Real-hardware configs

@@ -66,8 +66,22 @@ ament_target_dependencies(franka_gz_hardware_plugins
 # link interface.
 target_include_directories(franka_gz_hardware_plugins SYSTEM PUBLIC
         ${gz_ros2_control_INCLUDE_DIRS}
-        $<TARGET_PROPERTY:gz_ros2_control::gz_ros2_control-system,INTERFACE_INCLUDE_DIRECTORIES>
 )
+# Also pull the package's own include/gz_ros2_control prefix from the imported
+# system target. Guard on target existence so a renamed/removed target in a
+# future gz_ros2_control release fails loudly at configure time rather than
+# silently dropping the include path (which would only surface as a build error).
+if(TARGET gz_ros2_control::gz_ros2_control-system)
+        target_include_directories(franka_gz_hardware_plugins SYSTEM PUBLIC
+                $<TARGET_PROPERTY:gz_ros2_control::gz_ros2_control-system,INTERFACE_INCLUDE_DIRECTORIES>
+        )
+elseif(NOT gz_ros2_control_INCLUDE_DIRS)
+        message(FATAL_ERROR
+                "gz_ros2_control provides neither the "
+                "gz_ros2_control::gz_ros2_control-system imported target nor "
+                "gz_ros2_control_INCLUDE_DIRS; cannot locate the "
+                "GazeboSimSystemInterface headers.")
+endif()
 
 target_link_libraries(franka_gz_hardware_plugins
         gz-sim::gz-sim

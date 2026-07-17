@@ -65,12 +65,12 @@ class TestTeleopPlumbing(unittest.TestCase):
         )
 
         try:
-            deadline = time.time() + 5.0
-            while (time.time() < deadline
+            deadline = time.monotonic() + 5.0
+            while (time.monotonic() < deadline
                    and joy_publisher.get_subscription_count() == 0):
                 rclpy.spin_once(self.node, timeout_sec=0.1)
 
-            while time.time() < deadline and not received_messages:
+            while time.monotonic() < deadline and not received_messages:
                 joy_publisher.publish(
                     Joy(
                         axes=[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],

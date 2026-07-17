@@ -15,8 +15,13 @@
 """Fake-hardware integration test for the TMR v0.2 mobile base."""
 
 from pathlib import Path
-import time
 import unittest
+
+from franka_bringup.testing.fake_hardware_test_base import (
+    collect_unexpected_error_lines,
+    DEFAULT_SHUTDOWN_IGNORE_PATTERNS,
+    FakeHardwareTestBase,
+)
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, TimerAction
@@ -27,11 +32,6 @@ from launch_ros.substitutions import FindPackageShare
 
 import launch_testing
 import launch_testing.actions
-
-import rclpy
-from rclpy.qos import qos_profile_sensor_data
-
-from sensor_msgs.msg import JointState
 
 STARTUP_TIMEOUT = 10.0
 JOINT_STATE_TIMEOUT = 15.0
@@ -82,55 +82,10 @@ def generate_test_description():
     )
 
 
-class TestFakeHardwareTmr(unittest.TestCase):
+class TestFakeHardwareTmr(FakeHardwareTestBase):
     """Verify TMR mobile base launches and publishes joint states."""
 
-    @classmethod
-    def setUpClass(cls):
-        """Initialize the ROS context."""
-        rclpy.init()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Shutdown the ROS context."""
-        rclpy.shutdown()
-
-    def setUp(self):
-        """Create a test node."""
-        self.node = rclpy.create_node('fake_hardware_tmr_test')
-
-    def tearDown(self):
-        """Destroy the test node."""
-        self.node.destroy_node()
-
-    def wait_for_joint_states(self, *, min_joints, timeout_sec):
-        """Wait for /joint_states with at least min_joints."""
-        received = []
-
-        def callback(msg):
-            if len(msg.name) >= min_joints:
-                received.append(msg)
-
-        sub = self.node.create_subscription(
-            JointState,
-            '/joint_states',
-            callback,
-            qos_profile_sensor_data,
-        )
-
-        try:
-            deadline = time.time() + timeout_sec
-            while time.time() < deadline:
-                rclpy.spin_once(self.node, timeout_sec=0.2)
-                if received:
-                    return received[-1]
-        finally:
-            self.node.destroy_subscription(sub)
-
-        self.fail(
-            f'Did not receive /joint_states with >= {min_joints} joints '
-            f'within {timeout_sec}s'
-        )
+    NODE_NAME = 'fake_hardware_tmr_test'
 
     def test_tmr_publishes_drive_joints(self):
         """Verify TMR drive joints appear in /joint_states."""
@@ -149,27 +104,16 @@ class TestFakeHardwareTmr(unittest.TestCase):
 class TestFakeHardwareTmrShutdown(unittest.TestCase):
     """Verify TMR launch exits without unexpected errors."""
 
-    IGNORED_PATTERNS = [
+    IGNORED_PATTERNS = DEFAULT_SHUTDOWN_IGNORE_PATTERNS + [
         'swerve_drive_controller',
-        'service call timed out',
-        'pal_statistics',
         'joint_state_publisher',
     ]
 
     def test_has_no_error(self, proc_output):
         """Check no unexpected ERROR messages in output."""
-        error_lines = []
-        for event in proc_output:
-            text = event.text if hasattr(event, 'text') else str(event)
-            if isinstance(text, bytes):
-                text = text.decode('utf-8', errors='replace')
-            for line in text.splitlines():
-                if '[ERROR]' not in line:
-                    continue
-                if any(p in line.lower() for p in self.IGNORED_PATTERNS):
-                    continue
-                error_lines.append(line)
-
+        error_lines = collect_unexpected_error_lines(
+            proc_output, self.IGNORED_PATTERNS
+        )
         self.assertEqual(
             error_lines, [],
             f'Found unexpected [ERROR] log messages: {error_lines}',

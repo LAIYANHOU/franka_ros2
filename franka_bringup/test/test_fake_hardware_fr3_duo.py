@@ -14,8 +14,12 @@
 
 """Fake-hardware integration test for FR3 Duo (dual-arm) configuration."""
 
+import unittest
+
 from franka_bringup.testing.fake_hardware_test_base import (
+    collect_unexpected_error_lines,
     CONTROLLER_STATE_TIMEOUT,
+    DEFAULT_SHUTDOWN_IGNORE_PATTERNS,
     FakeHardwareTestBase,
 )
 
@@ -26,6 +30,7 @@ from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.substitutions import FindPackageShare
 
+import launch_testing
 import launch_testing.actions
 
 
@@ -58,9 +63,20 @@ class TestFakeHardwareFr3Duo(FakeHardwareTestBase):
             EXPECTED_JOINT_NAMES.issubset(set(joint_state.name))
         )
 
+
+@launch_testing.post_shutdown_test()
+class TestFakeHardwareFr3DuoShutdown(unittest.TestCase):
+    """Verify the FR3 Duo launch exits without unexpected errors."""
+
     def test_has_no_error(self, proc_output):
-        """Check no ERROR messages appear in launch output."""
-        self.assert_no_errors_in_output(proc_output)
+        """Check no unexpected [ERROR] messages appear across the full run."""
+        error_lines = collect_unexpected_error_lines(
+            proc_output, DEFAULT_SHUTDOWN_IGNORE_PATTERNS
+        )
+        self.assertEqual(
+            error_lines, [],
+            f'Found unexpected [ERROR] log messages: {error_lines}',
+        )
 
 
 def generate_test_description():

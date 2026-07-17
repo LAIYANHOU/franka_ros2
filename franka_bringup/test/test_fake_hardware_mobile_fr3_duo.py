@@ -17,7 +17,13 @@
 # so it cannot activate with mock_components. This test verifies hardware
 # activation, joint_state_broadcaster, and arm joint presence.
 
-from franka_bringup.testing.fake_hardware_test_base import FakeHardwareTestBase
+import unittest
+
+from franka_bringup.testing.fake_hardware_test_base import (
+    collect_unexpected_error_lines,
+    DEFAULT_SHUTDOWN_IGNORE_PATTERNS,
+    FakeHardwareTestBase,
+)
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
@@ -26,6 +32,7 @@ from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.substitutions import FindPackageShare
 
+import launch_testing
 import launch_testing.actions
 
 
@@ -55,14 +62,26 @@ class TestFakeHardwareMobileFr3Duo(FakeHardwareTestBase):
             f'Expected arm joints not found. Got: {joint_state.name}',
         )
 
+
+@launch_testing.post_shutdown_test()
+class TestFakeHardwareMobileFr3DuoShutdown(unittest.TestCase):
+    """Verify the Mobile FR3 Duo launch exits without unexpected errors."""
+
+    # swerve_drive_controller cannot activate with mock_components (needs real
+    # TMR cartesian_pose_state interfaces); its activation error is expected.
+    IGNORED_PATTERNS = DEFAULT_SHUTDOWN_IGNORE_PATTERNS + [
+        'swerve_drive_controller',
+        'cartesian_pose_state',
+    ]
+
     def test_has_no_error(self, proc_output):
-        """Check no unexpected ERROR messages appear in launch output."""
-        self.assert_no_errors_in_output(
-            proc_output,
-            ignore_patterns=[
-                'swerve_drive_controller',
-                'cartesian_pose_state',
-            ],
+        """Check no unexpected [ERROR] messages appear across the full run."""
+        error_lines = collect_unexpected_error_lines(
+            proc_output, self.IGNORED_PATTERNS
+        )
+        self.assertEqual(
+            error_lines, [],
+            f'Found unexpected [ERROR] log messages: {error_lines}',
         )
 
 

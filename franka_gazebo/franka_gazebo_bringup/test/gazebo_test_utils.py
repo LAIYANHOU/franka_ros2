@@ -37,15 +37,27 @@ from sensor_msgs.msg import JointState
 
 
 def ensure_gz_sim_not_running():
-    """Kill any remaining Gazebo and related ROS processes between tests."""
+    """Terminate orphaned Gazebo processes left by a crashed or timed-out run.
+
+    Targets the gz sim server (and its embedded ruby launcher) plus the ros_gz
+    bridge/spawner helpers. In particular the ``/clock`` ``parameter_bridge`` can
+    survive an aborted prior test; a stale sim-time publisher then stops the next
+    test's controllers from stepping (no ``/joint_states``) and zeroes physics.
+    This is a pre-launch sweep only, so it never races launch_testing's shutdown
+    of the current test (i.e. it does not mask managed process exit codes).
+
+    ``controller_manager`` (run in-process by gz_ros2_control) and
+    ``robot_state_publisher`` are deliberately NOT killed: they are managed by
+    launch_testing, and a global ``pkill`` on those names would risk killing
+    unrelated ROS processes. This remains a coarse ``pkill`` and assumes a
+    dedicated, serialized CI executor.
+    """
     subprocess.run(['pkill', '-2', '-f', '^gz sim'], check=False)
     time.sleep(2)
     subprocess.run(['pkill', '-9', '-f', '^gz sim'], check=False)
     subprocess.run(['pkill', '-9', '-f', 'ruby.*gz'], check=False)
-    subprocess.run(['pkill', '-9', '-f', 'controller_manager'], check=False)
-    subprocess.run(
-        ['pkill', '-9', '-f', 'robot_state_publisher'], check=False
-    )
+    subprocess.run(['pkill', '-9', '-f', 'ros_gz_bridge'], check=False)
+    subprocess.run(['pkill', '-9', '-f', 'ros_gz_sim'], check=False)
     time.sleep(2)
 
 
@@ -122,8 +134,10 @@ class GazeboTestBase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        # Let launch_testing perform its normal shutdown of the launched
+        # processes (so their exit codes are observed by the post-shutdown
+        # checks); do not pkill here, which would race that teardown.
         rclpy.shutdown()
-        ensure_gz_sim_not_running()
 
     def setUp(self):
         self.node = rclpy.create_node(self.NODE_NAME)
@@ -149,8 +163,8 @@ class GazeboTestBase(unittest.TestCase):
         )
 
         try:
-            deadline = time.time() + timeout_sec
-            while time.time() < deadline:
+            deadline = time.monotonic() + timeout_sec
+            while time.monotonic() < deadline:
                 rclpy.spin_once(self.node, timeout_sec=0.2)
                 if received:
                     return received[-1]

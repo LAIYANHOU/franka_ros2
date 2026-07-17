@@ -35,6 +35,38 @@ SERVICE_DISCOVERY_TIMEOUT = 20.0
 CONTROLLER_STATE_TIMEOUT = 30.0
 JOINT_STATE_TIMEOUT = 10.0
 
+# Errors that are expected on a clean launch_testing shutdown (nodes tearing
+# down while peers are already gone) and are not indicative of a test failure:
+#   - "service call timed out": a peer node is already gone.
+#   - "pal_statistics": controller_manager's statistics publisher thread races
+#     the rclpy context teardown ("context cannot be slept with ... invalid").
+DEFAULT_SHUTDOWN_IGNORE_PATTERNS = [
+    'service call timed out',
+    'pal_statistics',
+]
+
+
+def collect_unexpected_error_lines(proc_output, ignore_patterns=None):
+    """Return the [ERROR] log lines in proc_output not matching ignore_patterns."""
+    # Intended for @launch_testing.post_shutdown_test() classes so the complete
+    # process output (including the shutdown phase) is inspected, rather than the
+    # partial output an active test method sees. Ignore matching is case-insensitive.
+    ignore_patterns = [p.lower() for p in (ignore_patterns or [])]
+    error_lines = []
+    for event in proc_output:
+        text = getattr(event, 'text', None)
+        if text is None:
+            text = str(event)
+        elif isinstance(text, bytes):
+            text = text.decode('utf-8', errors='replace')
+        for line in text.splitlines():
+            if '[ERROR]' not in line:
+                continue
+            if any(pattern in line.lower() for pattern in ignore_patterns):
+                continue
+            error_lines.append(line)
+    return error_lines
+
 
 class FakeHardwareTestBase(unittest.TestCase):
     """Base class for fake-hardware integration tests."""
@@ -87,8 +119,8 @@ class FakeHardwareTestBase(unittest.TestCase):
         )
 
         try:
-            deadline = time.time() + timeout_sec
-            while time.time() < deadline:
+            deadline = time.monotonic() + timeout_sec
+            while time.monotonic() < deadline:
                 rclpy.spin_once(self.node, timeout_sec=0.2)
                 if received and len(received[-1].name) >= min_joints:
                     return received[-1]
@@ -101,24 +133,11 @@ class FakeHardwareTestBase(unittest.TestCase):
         )
 
     def assert_no_errors_in_output(self, proc_output, *, ignore_patterns=None):
-        """Assert no [ERROR] messages appear in launch output."""
-        # ignore_patterns: list of substrings to exempt from error checking
-        ignore_patterns = ignore_patterns or []
-        output_lines = []
-        for event in proc_output:
-            text = (
-                event.text.decode('utf-8', errors='replace')
-                if isinstance(event.text, bytes)
-                else event.text
-            )
-            output_lines.append(text)
-
-        all_output = '\n'.join(output_lines)
-        error_lines = [
-            line for line in all_output.split('\n')
-            if '[ERROR]' in line
-            and not any(pattern in line for pattern in ignore_patterns)
-        ]
+        """Assert no unexpected [ERROR] messages appear in launch output."""
+        # Prefer a @launch_testing.post_shutdown_test() class (see
+        # collect_unexpected_error_lines) so the full output is inspected; an
+        # active test method only sees output captured so far.
+        error_lines = collect_unexpected_error_lines(proc_output, ignore_patterns)
         self.assertEqual(
             error_lines, [],
             f'Found unexpected [ERROR] log messages: {error_lines}',

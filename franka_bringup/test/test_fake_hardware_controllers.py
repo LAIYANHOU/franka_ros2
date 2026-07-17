@@ -21,8 +21,13 @@
 
 from pathlib import Path
 import time
+import unittest
 
-from franka_bringup.testing.fake_hardware_test_base import FakeHardwareTestBase
+from franka_bringup.testing.fake_hardware_test_base import (
+    collect_unexpected_error_lines,
+    DEFAULT_SHUTDOWN_IGNORE_PATTERNS,
+    FakeHardwareTestBase,
+)
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
@@ -31,6 +36,7 @@ from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.substitutions import FindPackageShare
 
+import launch_testing
 import launch_testing.actions
 
 import rclpy
@@ -74,8 +80,8 @@ class TestFakeHardwareControllers(FakeHardwareTestBase):
         )
 
     def _wait_for_controller_unload(self, controller_name, timeout_sec=10.0):
-        deadline = time.time() + timeout_sec
-        while time.time() < deadline:
+        deadline = time.monotonic() + timeout_sec
+        while time.monotonic() < deadline:
             if not self._is_controller_loaded(controller_name):
                 return True
             rclpy.spin_once(self.node, timeout_sec=0.1)
@@ -172,9 +178,20 @@ class TestFakeHardwareControllers(FakeHardwareTestBase):
                         controller_name, timeout_sec=10.0
                     )
 
+
+@launch_testing.post_shutdown_test()
+class TestFakeHardwareControllersShutdown(unittest.TestCase):
+    """Verify the FR3 launch exits without unexpected errors."""
+
     def test_has_no_error(self, proc_output):
-        """Check no ERROR messages appear in launch output."""
-        self.assert_no_errors_in_output(proc_output)
+        """Check no unexpected [ERROR] messages appear across the full run."""
+        error_lines = collect_unexpected_error_lines(
+            proc_output, DEFAULT_SHUTDOWN_IGNORE_PATTERNS
+        )
+        self.assertEqual(
+            error_lines, [],
+            f'Found unexpected [ERROR] log messages: {error_lines}',
+        )
 
 
 def generate_test_description():
