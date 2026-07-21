@@ -4,18 +4,11 @@ Changelog for package franka_ros2
 UNRELEASED
 ----------
 
-* test: add a no-hardware integration test suite (ported from the ``jazzy``
-  branch, limited to features that exist on Humble). Adds a fake-hardware
-  (``mock_components/GenericSystem``) controller-lifecycle test for the FR3
-  single arm, a Joy→cmd_vel teleop plumbing test, a launch-file parsing test
-  covering the Humble launch inventory, a MoveIt planning smoke test plus a
-  gripper topic/controller-name consistency check, and a single GTest binary
-  that loads every registered example controller (replacing the per-controller
-  ``test_load_*`` binaries). ``fr3_duo`` / ``mobile_fr3_duo`` and the modern
-  ``gz sim`` Gazebo tests are jazzy-only and are not ported; TMR fake-hardware
-  is also not ported because its ``cartesian_velocity`` GPIO command interfaces
-  are not satisfiable under mock components on Humble. ``moveit.launch.py``
-  gains a ``use_rviz`` argument so the smoke test can run headless.
+* test: add a no-hardware integration test suite: a fake-hardware FR3
+  controller-lifecycle test, a Joy→cmd_vel teleop test, a launch-file parsing test,
+  a MoveIt planning smoke test with a gripper name-consistency check, and a single
+  GTest that loads every example controller. ``moveit.launch.py`` gains a
+  ``use_rviz`` argument so the smoke test can run headless.
 * fix: align MoveIt gripper controller name with actual gripper node name.
   ``fr3_controllers.yaml`` and ``moveit.launch.py`` referenced ``fr3_gripper``
   but the node is launched as ``franka_gripper``, breaking gripper action commands

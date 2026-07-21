@@ -4,11 +4,8 @@ This directory contains the integration and structural tests for the
 `franka_bringup` package. Tests are organized by what they verify and
 what hardware they require.
 
-> Note (Humble): `fr3_duo` / `mobile_fr3_duo` robots and the modern `gz sim`
-> Gazebo launch tests exist only on the `jazzy` branch and are intentionally
-> not part of this Humble test suite. TMR fake-hardware is likewise not covered:
-> its `cartesian_velocity` GPIO command interfaces are not satisfiable under
-> `mock_components/GenericSystem` on Humble.
+> Note: TMR fake-hardware is not covered because its `cartesian_velocity` GPIO
+> command interfaces are not satisfiable under `mock_components/GenericSystem`.
 
 ## Test Categories
 

@@ -27,9 +27,6 @@ from launch import LaunchDescription
 import pytest
 
 
-# Humble launch-file inventory. fr3_duo / mobile_fr3_duo launch files and the
-# franka_mobile_fr3_duo_moveit_config / franka_vision_and_manipulation_kit
-# packages exist only on jazzy and are intentionally omitted here.
 LAUNCH_FILES = [
     ('franka_bringup', 'franka.launch.py'),
     ('franka_bringup', 'example.launch.py'),

@@ -38,12 +38,7 @@ if(BUILD_TESTING)
 
   add_ros_isolated_launch_test(test/test_hardware_example_controllers.py "robot_ip:=${ROBOT_IP}")
   add_ros_isolated_launch_test(test/test_hardware_generic_controller.py "robot_ip:=${ROBOT_IP}")
-  # Fake-hardware (no-robot) integration tests. fr3_duo / mobile_fr3_duo are
-  # jazzy-only and are intentionally not ported to humble. TMR fake-hardware is
-  # also not ported: humble's TMR ros2_control description exposes
-  # cartesian_velocity GPIO command interfaces that mock_components/GenericSystem
-  # cannot satisfy, so the sim controller_manager aborts on launch (the jazzy fix
-  # relies on franka_hardware assets that do not exist on humble).
+  # Fake-hardware (no-robot) integration tests.
   add_ros_isolated_launch_test(test/test_fake_hardware_controllers.py)
   add_ros_isolated_launch_test(test/test_teleop_plumbing.py)
 

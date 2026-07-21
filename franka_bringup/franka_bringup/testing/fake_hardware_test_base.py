@@ -13,10 +13,6 @@
 # limitations under the License.
 
 """Base class and utilities for fake-hardware integration tests."""
-# Provides FakeHardwareTestBase: handles ROS lifecycle, node management,
-# ControllerServiceClient, joint_state waiting, and error assertion.
-# See franka_bringup/test/README.md for full architecture documentation.
-
 import time
 import unittest
 

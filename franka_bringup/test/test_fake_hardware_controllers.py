@@ -13,12 +13,6 @@
 #  limitations under the License.
 
 """Fake-hardware integration test for FR3 single-arm configuration."""
-# Tests controller lifecycle with use_fake_hardware:=true.
-# CONTROLLERS_TO_ACTIVATE: effort-only, can fully activate with
-# mock_components.
-# CONTROLLERS_TO_LOAD_ONLY: need Franka GPIO, can only load without
-# real hardware.
-
 from pathlib import Path
 import time
 import unittest
