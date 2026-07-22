@@ -6,10 +6,7 @@
     - Layer 1 macro (franka_description: mobile_fr3_duo_v0_2)
     - Sensor suite  (franka_mobile_sensors: sensor_suite)
 
-  Callers must define the following properties before invoking this macro
-  (required by the Layer 1 macro):
-    robot_types_list   — Python list, e.g. ${['tmrv0_2','fr3v2','fr3v2']}
-    robot_ips_list     — Python list, e.g. ${['172.16.0.1','172.16.0.2','172.16.0.3']}
+  Callers must define robot_types_list before invoking this macro.
 -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
@@ -28,7 +25,7 @@
               tcp_rpy
               safety_distance
               with_sc
-              gazebo
+              include_self_collision_geometry
               description_pkg
               connected_to
               reduced_version
@@ -38,7 +35,6 @@
     <xacro:mobile_fr3_duo_v0_2
           robot_types="${robot_types}"
           hand="${hand}"
-          gazebo="${gazebo}"
           reduced_version="${reduced_version}"
           description_pkg="${description_pkg}"
           connected_to="${connected_to}"
@@ -51,7 +47,11 @@
           tcp_xyz="${tcp_xyz}"
           tcp_rpy="${tcp_rpy}"
           safety_distance="${safety_distance}"
-          with_sc="${with_sc}"/>
+          with_sc="${with_sc}"
+          include_self_collision_geometry="${include_self_collision_geometry}">
+      <arm0_extras/>
+      <arm1_extras/>
+    </xacro:mobile_fr3_duo_v0_2>
 
     <!-- Attach all sensors -->
     <xacro:sensor_suite />

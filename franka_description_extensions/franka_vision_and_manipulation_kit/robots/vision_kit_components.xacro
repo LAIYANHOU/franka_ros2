@@ -15,13 +15,13 @@
   <xacro:include filename="$(find zed_description)/urdf/zed_macro.urdf.xacro"/>
 
   <xacro:macro name="vision_kit_components" 
-    params="left_arm_type:=fr3v2 right_arm_type:=fr3v2 prefix:='' robotiq_use_fake_hardware:=false robotiq_include_ros2_control:=true sim_gazebo:=false">
+    params="left_arm_type:=fr3v2 right_arm_type:=fr3v2 prefix:='' left_arm_prefix:='left' right_arm_prefix:='right' robotiq_use_fake_hardware:=false robotiq_include_ros2_control:=true sim_gazebo:=false">
 
     <!-- Robotiq Grippers with RealSense D405 wrist cameras -->
-    <xacro:robotiq_gripper_with_realsense_camera parent="left_${left_arm_type}_link8" prefix="${prefix}left_" 
+    <xacro:robotiq_gripper_with_realsense_camera parent="${left_arm_prefix}_${left_arm_type}_link8" prefix="${prefix}left_"
       robotiq_name="left_robotiq_gripper_hardware" robotiq_use_fake_hardware="${robotiq_use_fake_hardware}" 
       robotiq_include_ros2_control="${robotiq_include_ros2_control}" robotiq_sim_gazebo="${sim_gazebo}" />
-    <xacro:robotiq_gripper_with_realsense_camera parent="right_${right_arm_type}_link8" prefix="${prefix}right_" 
+    <xacro:robotiq_gripper_with_realsense_camera parent="${right_arm_prefix}_${right_arm_type}_link8" prefix="${prefix}right_"
       robotiq_name="right_robotiq_gripper_hardware" robotiq_use_fake_hardware="${robotiq_use_fake_hardware}" 
       robotiq_include_ros2_control="${robotiq_include_ros2_control}" robotiq_sim_gazebo="${sim_gazebo}" />
 
