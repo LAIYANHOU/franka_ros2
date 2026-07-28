@@ -22,7 +22,7 @@
   <xacro:arg name="use_fake_hardware" default="false"/>
   <xacro:arg name="fake_sensor_commands" default="false"/>
   <xacro:arg name="is_async" default="false"/>
-  <xacro:arg name="thread_priority" default="50"/>
+  <xacro:arg name="thread_priority" default="98"/>
 
   <!-- Arm prefixes (hardcoded as in mobile_fr3_duo_v0_2.xacro) -->
   <xacro:property name="arm_prefixes_list" value="${['left','right']}"/>

@@ -250,8 +250,9 @@ The main config file keys are:
       - Start RViz together with the launch file.
     * - ``thread_priority``
       - integer
-      - ``50``
-      - Thread priority used by the hardware interface.
+      - ``98``
+      - Thread priority used by the hardware interface. Must stay above the controller
+        manager's ``thread_priority``, since this thread owns the 1 kHz robot socket.
 
 .. note::
 
@@ -375,8 +376,9 @@ The mobile dual-arm configuration is defined in
       - Start RViz together with the launch file.
     * - ``thread_priority``
       - integer
-      - ``50``
-      - Thread priority used by the hardware interface.
+      - ``98``
+      - Thread priority used by the hardware interface. Must stay above the controller
+        manager's ``thread_priority``, since this thread owns the 1 kHz robot socket.
 
 .. note::
 

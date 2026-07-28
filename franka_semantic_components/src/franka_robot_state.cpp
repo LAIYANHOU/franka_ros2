@@ -198,21 +198,49 @@ auto FrankaRobotState::initialize_robot_state_msg(franka_msgs::msg::FrankaRobotS
   message.tau_ext_hat_filtered.effort.resize(joint_names.size(), 0.0);
 }
 
-auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState& message) -> bool {
-  auto franka_state_interface = std::find_if(
-      state_interfaces_.cbegin(), state_interfaces_.cend(), [&](const auto& interface) {
-        return interface.get().get_name() == full_robot_state_interface_name_;
-      });
-  if (franka_state_interface != state_interfaces_.end()) {
-    auto* buffer_ptr = bit_cast<realtime_tools::RealtimeBuffer<franka::RobotState>*>(
-        (*franka_state_interface).get().get_optional().value());
-    robot_state_ptr = buffer_ptr->readFromRT();
-  } else {
-    RCLCPP_ERROR(rclcpp::get_logger("franka_state_semantic_component"),
-                 "Franka state interface does not exist! Did you assign the loaned state in the "
-                 "controller?");
+auto FrankaRobotState::initialize_state_buffer() -> bool {
+  // assign_loaned_state_interfaces() claims the interfaces named in the constructor and
+  // orders them to match, so a complete claim leaves the robot state interface first.
+  if (state_interfaces_.size() != interface_names_.size()) {
+    RCLCPP_ERROR(rclcpp::get_logger("franka_robot_state_semantic_component"),
+                 "Franka state interface '%s' was not claimed! Did you assign the loaned state in "
+                 "the controller?",
+                 full_robot_state_interface_name_.c_str());
     return false;
   }
+
+  // The hardware hands over the address of its state buffer through the interface value.
+  // By default, the robot state interface is the first and only interface.
+  const auto interface_value = state_interfaces_.front().get().get_optional();
+  if (!interface_value.has_value()) {
+    RCLCPP_ERROR(rclcpp::get_logger("franka_robot_state_semantic_component"),
+                 "Could not read the Franka state interface.");
+    return false;
+  }
+
+  robot_state_buffer_ =
+      bit_cast<realtime_tools::RealtimeBuffer<franka::RobotState>*>(interface_value.value());
+  if (robot_state_buffer_ == nullptr) {
+    RCLCPP_ERROR(rclcpp::get_logger("franka_robot_state_semantic_component"),
+                 "The Franka state interface carries a null robot state buffer.");
+    return false;
+  }
+  return true;
+}
+
+auto FrankaRobotState::reset_state_buffer() -> void {
+  robot_state_buffer_ = nullptr;
+  robot_state_ptr = nullptr;
+}
+
+auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState& message) -> bool {
+  if (robot_state_buffer_ == nullptr) {
+    RCLCPP_ERROR(rclcpp::get_logger("franka_state_semantic_component"),
+                 "Franka state buffer is not initialized! Did you call initialize_state_buffer() "
+                 "after assigning the loaned state interfaces?");
+    return false;
+  }
+  robot_state_ptr = robot_state_buffer_->readFromRT();
 
   // Update the time stamps of the data
   translation::updateTimeStamps(message.header.stamp, message);
@@ -283,35 +311,7 @@ auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState&
   message.current_errors = translation::errorsToMessage(robot_state_ptr->current_errors);
   message.last_motion_errors = translation::errorsToMessage(robot_state_ptr->last_motion_errors);
 
-  switch (robot_state_ptr->robot_mode) {
-    case franka::RobotMode::kOther:
-      message.robot_mode = franka_msgs::msg::FrankaRobotState::ROBOT_MODE_OTHER;
-      break;
-
-    case franka::RobotMode::kIdle:
-      message.robot_mode = franka_msgs::msg::FrankaRobotState::ROBOT_MODE_IDLE;
-      break;
-
-    case franka::RobotMode::kMove:
-      message.robot_mode = franka_msgs::msg::FrankaRobotState::ROBOT_MODE_MOVE;
-      break;
-
-    case franka::RobotMode::kGuiding:
-      message.robot_mode = franka_msgs::msg::FrankaRobotState::ROBOT_MODE_GUIDING;
-      break;
-
-    case franka::RobotMode::kReflex:
-      message.robot_mode = franka_msgs::msg::FrankaRobotState::ROBOT_MODE_REFLEX;
-      break;
-
-    case franka::RobotMode::kUserStopped:
-      message.robot_mode = franka_msgs::msg::FrankaRobotState::ROBOT_MODE_USER_STOPPED;
-      break;
-
-    case franka::RobotMode::kAutomaticErrorRecovery:
-      message.robot_mode = franka_msgs::msg::FrankaRobotState::ROBOT_MODE_AUTOMATIC_ERROR_RECOVERY;
-      break;
-  }
+  message.robot_mode = static_cast<uint8_t>(robot_state_ptr->robot_mode);
   return true;
 }
 

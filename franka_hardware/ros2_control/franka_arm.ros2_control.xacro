@@ -9,7 +9,7 @@
                  include_finger_joint:=false
                  arm_prefix:=''
                  is_async:=false
-                 thread_priority:=50
+                 thread_priority:=98
                  **hardware_plugin">
 
     <ros2_control name="${arm_prefix}FrankaHardwareInterface" type="system" is_async="${is_async}">

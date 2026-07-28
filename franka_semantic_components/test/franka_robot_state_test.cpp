@@ -44,6 +44,7 @@ void FrankaRobotStateTest::SetUp() {
 
   temp_state_interfaces.emplace_back(franka_hw_state);
   franka_state_friend->assign_loaned_state_interfaces(temp_state_interfaces);
+  ASSERT_TRUE(franka_state_friend->initialize_state_buffer());
   franka_state_friend->initialize_robot_state_msg(franka_robot_state_msg);
   ASSERT_TRUE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
 }
@@ -88,6 +89,32 @@ TEST_F(FrankaRobotStateTest,
   franka_state_friend->release_interfaces();
   // validate the count of state_interfaces_
   ASSERT_EQ(franka_state_friend->state_interfaces_.size(), 0u);
+}
+
+TEST_F(FrankaRobotStateTest, a_released_buffer_stops_the_message_from_being_built) {
+  franka_state_friend->reset_state_buffer();
+  franka_state_friend->release_interfaces();
+
+  ASSERT_FALSE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
+}
+
+TEST_F(FrankaRobotStateTest, the_buffer_cannot_be_resolved_without_the_state_interface) {
+  franka_state_friend->reset_state_buffer();
+  franka_state_friend->release_interfaces();
+
+  ASSERT_FALSE(franka_state_friend->initialize_state_buffer());
+}
+
+TEST_F(FrankaRobotStateTest, the_cached_buffer_keeps_serving_fresh_state) {
+  // The interface is only consulted at initialization, so later writes have to reach the
+  // message through the cached buffer rather than through another lookup.
+  std::array<double, 7> moved_angles = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7};
+  robot_state.q = moved_angles;
+  robot_state_buffer.writeFromNonRT(robot_state);
+
+  ASSERT_TRUE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
+  ASSERT_THAT(moved_angles,
+              ::testing::ElementsAreArray(franka_robot_state_msg.measured_joint_state.position));
 }
 
 TEST_F(FrankaRobotStateTest, givenInitializedRobotStateMsg_thenCorrectFrameIDs) {

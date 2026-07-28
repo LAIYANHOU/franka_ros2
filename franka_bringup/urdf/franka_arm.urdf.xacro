@@ -22,7 +22,7 @@
   <xacro:arg name="use_fake_hardware" default="false"/>
   <xacro:arg name="fake_sensor_commands" default="false"/>
   <xacro:arg name="is_async" default="false"/>
-  <xacro:arg name="thread_priority" default="50"/>
+  <xacro:arg name="thread_priority" default="98"/>
 
   <!-- ros2_control hardware interface -->
   <xacro:franka_arm_ros2_control

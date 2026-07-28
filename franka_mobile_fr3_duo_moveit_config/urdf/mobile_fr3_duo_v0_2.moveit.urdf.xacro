@@ -32,7 +32,7 @@
     <xacro:arg name="use_fake_hardware"    default="false" />
     <xacro:arg name="simulate_in_gazebo"   default="false" />
     <xacro:arg name="is_async"             default="true" />
-    <xacro:arg name="thread_priority"      default="97" />
+    <xacro:arg name="thread_priority"      default="98" />
 
     <xacro:arg name="no_prefix"          default="false"/>
     <xacro:arg name="special_connection" default=""/>

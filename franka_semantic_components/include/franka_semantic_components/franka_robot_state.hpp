@@ -20,6 +20,7 @@
 #include <vector>
 #include "urdf/model.h"
 
+#include <realtime_tools/realtime_buffer.hpp>
 #include "franka/robot_state.h"
 #include "franka_msgs/msg/franka_robot_state.hpp"
 #include "semantic_components/semantic_component_interface.hpp"
@@ -38,6 +39,21 @@ class FrankaRobotState
   virtual auto initialize_robot_state_msg(franka_msgs::msg::FrankaRobotState& message) -> void;
 
   /**
+   * Resolves the robot state buffer the hardware exports through its state interface and
+   * caches it. Locating the interface means a name-based search over the loaned interfaces,
+   * so it is done once per activation rather than on every cycle.
+   *
+   * Call after assign_loaned_state_interfaces() and before get_values_as_message().
+   * \return true if the buffer was resolved.
+   */
+  virtual auto initialize_state_buffer() -> bool;
+
+  /**
+   * Drops the cached buffer. Call before releasing the loaned state interfaces.
+   */
+  auto reset_state_buffer() -> void;
+
+  /**
    * Constructs and return a FrankaRobotState message from the current values.
    * \return FrankaRobotState message from values;
    */
@@ -52,7 +68,8 @@ class FrankaRobotState
   auto get_robot_state() -> franka::RobotState*;
 
  private:
-  franka::RobotState* robot_state_ptr;
+  franka::RobotState* robot_state_ptr{nullptr};
+  realtime_tools::RealtimeBuffer<franka::RobotState>* robot_state_buffer_{nullptr};
 
   std::string robot_description_;
   std::string robot_name_;

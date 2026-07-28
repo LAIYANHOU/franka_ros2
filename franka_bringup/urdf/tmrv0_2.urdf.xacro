@@ -21,7 +21,7 @@
   <xacro:arg name="use_fake_hardware" default="false"/>
   <xacro:arg name="fake_sensor_commands" default="false"/>
   <xacro:arg name="is_async" default="false"/>
-  <xacro:arg name="thread_priority" default="50"/>
+  <xacro:arg name="thread_priority" default="98"/>
 
   <!-- Hardware plugin selector macro -->
   <xacro:include filename="$(find franka_hardware)/ros2_control/tmrv0_2_hardware_plugins.xacro"/>

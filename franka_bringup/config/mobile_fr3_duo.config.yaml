@@ -13,5 +13,5 @@ mobile_fr3_duo_robot:
   fake_sensor_commands: "false"
   namespace: ''
   joint_state_rate: 30
-  thread_priority: 50
+  thread_priority: 98
   use_rviz: "true"
