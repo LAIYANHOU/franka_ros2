@@ -10,6 +10,9 @@ Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Jazz
 UNRELEASED
 ----------
 
+* docu: add an umbrella guide for the relocated description extensions,
+  including composition layers, mounting points, prefix rules, and external
+  gripper attachment.
 * docs: comprehensive documentation audit and fixes across 12 packages — corrected
   inaccurate launch arguments, removed references to non-existent files, fixed API method
   names, updated parameter names to match code, added undocumented launch args, improved
