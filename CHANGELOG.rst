@@ -1,11 +1,6 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-v3.4.1 (2026-07-07)
--------------------
-Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Jazzy
-
-* feat: add tmr launch file in franka bringup and use it for the mobile teleop launch file
 
 UNRELEASED
 ----------
@@ -13,6 +8,7 @@ UNRELEASED
 * docu: add an umbrella guide for the relocated description extensions,
   including composition layers, mounting points, prefix rules, and external
   gripper attachment.
+* fix: using best_effort QoS for franka_robot_state_broadcaster convenience topics to avoid blocking the RT loop in sync scenario.
 * fix: default thread priority for franka_hardware interface threads is now 98 (was 50) to 
   ensure RT stability.
 * fix: franka_robot_state_broadcaster async by default to avoid blocking the RT loop in sync scenario.
@@ -57,6 +53,12 @@ UNRELEASED
   anchor, and self-collision suppression now live in franka_gazebo, making franka_description
   simulator-agnostic. All robot × mode URDF expansions remain byte-identical to before the
   refactor.
+
+v3.4.1 (2026-07-07)
+-------------------
+Requires libfranka >= 0.20.4 and franka_description >= 2.8.0 requires ROS 2 Jazzy
+
+* feat: add tmr launch file in franka bringup and use it for the mobile teleop launch file
 
 v3.4.0 (2026-06-23)
 -------------------

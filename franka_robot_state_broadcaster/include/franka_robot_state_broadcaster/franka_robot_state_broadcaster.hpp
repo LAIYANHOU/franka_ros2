@@ -68,21 +68,19 @@ class FrankaRobotStateBroadcaster : public controller_interface::ControllerInter
   Params params_;
 
   std::string state_interface_name_{"robot_state"};
-  std::shared_ptr<rclcpp::Publisher<franka_msgs::msg::FrankaRobotState>> franka_state_publisher_;
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::PoseStamped>>
-      current_pose_stamped_publisher_;
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::PoseStamped>>
+  rclcpp::Publisher<franka_msgs::msg::FrankaRobotState>::SharedPtr franka_state_publisher_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr current_pose_stamped_publisher_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr
       last_desired_pose_stamped_publisher_;
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::TwistStamped>>
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr
       desired_end_effector_twist_stamped_publisher_;
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>>
+  rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr
       external_wrench_in_base_frame_publisher_;
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>>
+  rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr
       external_wrench_in_stiffness_frame_publisher_;
-  std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>>
-      external_joint_torques_publisher_;
-  std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> measured_joint_states_publisher_;
-  std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> desired_joint_states_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr external_joint_torques_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr measured_joint_states_publisher_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr desired_joint_states_publisher_;
 
   const std::string kCurrentPoseTopic = "~/current_pose";
   const std::string kLastDesiredPoseTopic = "~/last_desired_pose";

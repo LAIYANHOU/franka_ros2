@@ -72,40 +72,35 @@ controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_configure(
     std::string hw_interface_name = full_prefix + params_.robot_type + "/" + state_interface_name_;
 
     franka_robot_state_ = std::make_unique<franka_semantic_components::FrankaRobotState>(
-      hw_interface_name, robot_description);
+        hw_interface_name, robot_description);
   }
 
-  auto convenience_qos = rclcpp::QoS(1).best_effort();
+  const auto state_qos = rclcpp::QoS(rclcpp::KeepLast(1)).best_effort();
 
   current_pose_stamped_publisher_ = this_node->create_publisher<geometry_msgs::msg::PoseStamped>(
-      kCurrentPoseTopic, convenience_qos);
+      kCurrentPoseTopic, state_qos);
   last_desired_pose_stamped_publisher_ =
       this_node->create_publisher<geometry_msgs::msg::PoseStamped>(kLastDesiredPoseTopic,
-                                                                   convenience_qos);
+                                                                   state_qos);
   desired_end_effector_twist_stamped_publisher_ =
-      this_node->create_publisher<geometry_msgs::msg::TwistStamped>(kDesiredEETwist,
-                                                                    convenience_qos);
+      this_node->create_publisher<geometry_msgs::msg::TwistStamped>(kDesiredEETwist, state_qos);
   measured_joint_states_publisher_ = this_node->create_publisher<sensor_msgs::msg::JointState>(
-      kMeasuredJointStates, convenience_qos);
+      kMeasuredJointStates, state_qos);
   external_wrench_in_stiffness_frame_publisher_ =
       this_node->create_publisher<geometry_msgs::msg::WrenchStamped>(
-          kExternalWrenchInStiffnessFrame, convenience_qos);
+          kExternalWrenchInStiffnessFrame, state_qos);
   external_wrench_in_base_frame_publisher_ =
       this_node->create_publisher<geometry_msgs::msg::WrenchStamped>(kExternalWrenchInBaseFrame,
-                                                                     convenience_qos);
+                                                                     state_qos);
   external_joint_torques_publisher_ = this_node->create_publisher<sensor_msgs::msg::JointState>(
-      kExternalJointTorques, convenience_qos);
+      kExternalJointTorques, state_qos);
   desired_joint_states_publisher_ = this_node->create_publisher<sensor_msgs::msg::JointState>(
-      kDesiredJointStates, convenience_qos);
+      kDesiredJointStates, state_qos);
 
   try {
-    // TODO (francando): Consider using a more appropriate QoS for the state publisher, like 
-    // best effort or transient local like convenience topics, but this might be a breaking change for existing users.
     franka_state_publisher_ = this_node->create_publisher<franka_msgs::msg::FrankaRobotState>(
-        "~/" + state_interface_name_, rclcpp::SystemDefaultsQoS());
+        "~/" + state_interface_name_, state_qos);
 
-    // The message is filled in place on every cycle, so its frame ids and vector sizes
-    // only have to be established once.
     franka_robot_state_->initialize_robot_state_msg(state_msg_);
   } catch (const std::exception& e) {
     fprintf(stderr,
@@ -134,9 +129,6 @@ controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_configure(
   RCLCPP_INFO(get_node()->get_logger(), "Convenience topics at %d Hz, full state at %d Hz",
               effective_rate, update_rate);
 
-  // Building this message costs tens of microseconds, which is time the host needs in
-  // order to get its command back to the robot within the same tick. Running here means
-  // spending it on the control loop, so say so rather than losing commands quietly.
   if (!is_async()) {
     RCLCPP_WARN(get_node()->get_logger(),
                 "Running on the controller manager's real-time loop. Building the state message "

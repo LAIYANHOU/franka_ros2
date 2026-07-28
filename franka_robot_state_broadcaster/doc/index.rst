@@ -55,24 +55,38 @@ Example in ``controllers.yaml``:
 Published Topics
 ----------------
 
-Full robot state (reliable QoS):
-
-* ``~/robot_state`` (franka_msgs/FrankaRobotState): Complete robot state at 1 kHz.
-  Published with **reliable** QoS (``rclcpp::SystemDefaultsQoS()``).
-
-Convenience topics (best_effort QoS):
-
-The following topics are published at the rate configured by
-``convenience_publish_rate``. They use **best_effort** QoS to avoid blocking the
-real-time publish thread.
+Every topic listed here, the full robot state included, is published with
+**best_effort** reliability, ``KEEP_LAST`` history of depth 1 and ``volatile``
+durability. Each carries a stream in which every sample supersedes the previous one, so
+a subscriber only ever wants the newest value. Best effort also prevents a slow
+subscriber from stalling the broadcaster's publish thread, which reliable delivery would
+allow for up to the RMW's maximum blocking time.
 
 .. important::
 
-    Subscribers must use **best_effort** reliability to receive these topics.
-    The default QoS (reliable) is **not compatible** and will result in no messages
-    being received. This applies to custom nodes, ``ros2 topic echo``
-    (use ``--qos-reliability best_effort``), and rviz2 (set Reliability Policy
-    to "Best Effort" in display properties).
+    Subscribers must request **best_effort** reliability. The ``rclcpp`` and ``rclpy``
+    defaults are **reliable**, which is **not compatible** with these publishers: the
+    endpoints never match, no messages arrive, and nothing is reported as an error. This
+    applies to custom nodes, to ``ros2 topic echo`` (use
+    ``--qos-reliability best_effort``) and to rviz2 (set Reliability Policy to
+    "Best Effort" in the display properties).
+
+.. note::
+
+    ``ros2 bag record`` adopts the QoS offered by the publisher, so recordings of these
+    topics are best_effort as well and may omit samples if the writer cannot keep up.
+    Requesting reliable on the subscriber side does not help, because that profile is
+    incompatible with these publishers and would record nothing at all.
+
+Full robot state:
+
+* ``~/robot_state`` (franka_msgs/FrankaRobotState): Complete robot state, published at
+  the controller update rate (1 kHz).
+
+Convenience topics:
+
+The following topics are published at the rate configured by
+``convenience_publish_rate``.
 
 * ``~/current_pose`` (geometry_msgs/PoseStamped): Measured end-effector pose in base frame.
 * ``~/last_desired_pose`` (geometry_msgs/PoseStamped): Last desired end-effector pose.
