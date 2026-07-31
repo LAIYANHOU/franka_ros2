@@ -30,7 +30,7 @@
 #include <pluginlib/class_loader.hpp>
 #include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
 #include <rclcpp_lifecycle/state.hpp>
-#include <realtime_tools/realtime_buffer.hpp>
+#include <realtime_tools/realtime_thread_safe_box.hpp>
 #include <string>
 #include <vector>
 
@@ -109,7 +109,7 @@ class FrankaGazeboHardwareInterface : public gz_ros2_control::GazeboSimSystemInt
 
   /**
    * Builds a synthetic franka::RobotState from the current simulated joint
-   * positions/velocities and publishes it into rt_robot_state_buffer_, so the
+   * positions/velocities and publishes it into robot_state_box_, so the
    * model semantic component sees a live configuration in simulation.
    *
    * @param time Current simulation time, used for RobotState::time.
@@ -178,12 +178,12 @@ class FrankaGazeboHardwareInterface : public gz_ros2_control::GazeboSimSystemInt
   // force-torque interfaces.
   bool model_available_ = false;
 
-  // Thread-safe buffer mirroring franka_hardware's rt_robot_state_buffer_. read()
-  // writes a synthetic franka::RobotState here; the semantic component reads it
-  // through the smuggled &rt_robot_state_buffer_ptr_ pointer.
-  realtime_tools::RealtimeBuffer<franka::RobotState> rt_robot_state_buffer_;
-  realtime_tools::RealtimeBuffer<franka::RobotState>* rt_robot_state_buffer_ptr_ =
-      &rt_robot_state_buffer_;
+  // Mirrors franka_hardware's robot_state_box_. read() writes a synthetic
+  // franka::RobotState here; consumers copy via try_get()/get() through the
+  // smuggled &robot_state_box_ptr_ pointer.
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState> robot_state_box_;
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_ptr_ =
+      &robot_state_box_;
 
   // The first seven configuration joints (in model order) are the arm joints
   // whose q/dq populate the synthetic RobotState consumed by the model.

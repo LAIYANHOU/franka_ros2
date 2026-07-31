@@ -17,13 +17,6 @@
         type: franka_robot_state_broadcaster/FrankaRobotStateBroadcaster
 
 /**:
-  franka_robot_state_broadcaster:
-    ros__parameters:
-      is_async: true
-      # TODO (francando): on luth, use async_parameters.thread_priority
-      thread_priority: 30
-
-/**: 
   fr3_arm_controller:
     ros__parameters:
       command_interfaces:

@@ -9,6 +9,13 @@ Functionality
 The broadcaster publishes the Franka robot state on ``~/robot_state``. Without a
 namespace, this resolves to ``/franka_robot_state_broadcaster/robot_state``.
 
+``update()`` runs on the controller manager thread: it reads the hardware
+``RealtimeThreadSafeBox<franka::RobotState>``, builds the ROS message into an
+``AsyncBuffer``, and returns. A dedicated publish thread drains that buffer and
+performs all DDS publishes, so publish cost does not sit between robot state
+arrival and command egress. Keep ``is_async: false`` (the default) so this
+controller shares the CM thread with other readers of the same state box.
+
 This controller is spawned by ``franka.launch.py`` in ``franka_bringup``. Therefore,
 any setup that launches ``franka.launch.py`` also publishes the robot state topic.
 

@@ -32,6 +32,24 @@ constexpr size_t kFlangeLinkIndex = 8;
 constexpr size_t kLoadLinkIndex = 8;
 const std::string kTCPFrameName = "_hand_tcp";
 
+// franka::RobotMode and FrankaRobotState.robot_mode are intentionally isomorphic.
+// Keep the hot path as a single cast; fail the build if libfranka or the .msg drifts.
+static_assert(static_cast<uint8_t>(franka::RobotMode::kOther) ==
+              franka_msgs::msg::FrankaRobotState::ROBOT_MODE_OTHER);
+static_assert(static_cast<uint8_t>(franka::RobotMode::kIdle) ==
+              franka_msgs::msg::FrankaRobotState::ROBOT_MODE_IDLE);
+static_assert(static_cast<uint8_t>(franka::RobotMode::kMove) ==
+              franka_msgs::msg::FrankaRobotState::ROBOT_MODE_MOVE);
+static_assert(static_cast<uint8_t>(franka::RobotMode::kGuiding) ==
+              franka_msgs::msg::FrankaRobotState::ROBOT_MODE_GUIDING);
+static_assert(static_cast<uint8_t>(franka::RobotMode::kReflex) ==
+              franka_msgs::msg::FrankaRobotState::ROBOT_MODE_REFLEX);
+static_assert(static_cast<uint8_t>(franka::RobotMode::kUserStopped) ==
+              franka_msgs::msg::FrankaRobotState::ROBOT_MODE_USER_STOPPED);
+static_assert(static_cast<uint8_t>(franka::RobotMode::kAutomaticErrorRecovery) ==
+              franka_msgs::msg::FrankaRobotState::ROBOT_MODE_AUTOMATIC_ERROR_RECOVERY);
+static_assert(static_cast<uint8_t>(franka::RobotMode::kAutomaticErrorRecovery) == 6u);
+
 // Example implementation of bit_cast: https://en.cppreference.com/w/cpp/numeric/bit_cast
 template <class To, class From>
 std::enable_if_t<sizeof(To) == sizeof(From) && std::is_trivially_copyable<From>::value &&
@@ -209,7 +227,7 @@ auto FrankaRobotState::initialize_state_buffer() -> bool {
     return false;
   }
 
-  // The hardware hands over the address of its state buffer through the interface value.
+  // The hardware hands over the address of its state box through the interface value.
   // By default, the robot state interface is the first and only interface.
   const auto interface_value = state_interfaces_.front().get().get_optional();
   if (!interface_value.has_value()) {
@@ -218,29 +236,39 @@ auto FrankaRobotState::initialize_state_buffer() -> bool {
     return false;
   }
 
-  robot_state_buffer_ =
-      bit_cast<realtime_tools::RealtimeBuffer<franka::RobotState>*>(interface_value.value());
-  if (robot_state_buffer_ == nullptr) {
+  robot_state_box_ =
+      bit_cast<realtime_tools::RealtimeThreadSafeBox<franka::RobotState>*>(interface_value.value());
+  if (robot_state_box_ == nullptr) {
     RCLCPP_ERROR(rclcpp::get_logger("franka_robot_state_semantic_component"),
-                 "The Franka state interface carries a null robot state buffer.");
+                 "The Franka state interface carries a null robot state box.");
     return false;
   }
   return true;
 }
 
 auto FrankaRobotState::reset_state_buffer() -> void {
-  robot_state_buffer_ = nullptr;
+  robot_state_box_ = nullptr;
   robot_state_ptr = nullptr;
+  robot_state_cache_valid_ = false;
 }
 
 auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState& message) -> bool {
-  if (robot_state_buffer_ == nullptr) {
+  if (robot_state_box_ == nullptr) {
     RCLCPP_ERROR(rclcpp::get_logger("franka_state_semantic_component"),
-                 "Franka state buffer is not initialized! Did you call initialize_state_buffer() "
+                 "Franka state box is not initialized! Did you call initialize_state_buffer() "
                  "after assigning the loaned state interfaces?");
     return false;
   }
-  robot_state_ptr = robot_state_buffer_->readFromRT();
+  // Best-effort copy under the box mutex. Controllers that also read the box (e.g. model-based
+  // impedance) and the hardware try_set contend on the same lock; a failed try_get is not an
+  // error — reuse the last successful sample.
+  if (const auto robot_state = robot_state_box_->try_get()) {
+    robot_state_cache_ = *robot_state;
+    robot_state_cache_valid_ = true;
+  } else if (!robot_state_cache_valid_) {
+    return false;
+  }
+  robot_state_ptr = &robot_state_cache_;
 
   // Update the time stamps of the data
   translation::updateTimeStamps(message.header.stamp, message);

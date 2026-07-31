@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include <realtime_tools/realtime_buffer.hpp>
+#include <realtime_tools/realtime_thread_safe_box.hpp>
 #include <ros2_control_test_assets/descriptions.hpp>
 #include "controller_interface/controller_interface.hpp"
 #include "franka/robot_state.h"
@@ -56,21 +56,21 @@ class TestFrankaRobotStateBroadcaster : public ::testing::Test {
         {"robot_description", ros2_control_test_assets::minimal_robot_urdf});
 
     // The broadcaster claims the robot state interface on activation, so offer one that
-    // carries the address of a state buffer the way the hardware does.
+    // carries the address of a state box the way the hardware does.
     std::vector<hardware_interface::LoanedStateInterface> loaned_state_interfaces;
     loaned_state_interfaces.emplace_back(robot_state_interface_);
     broadcaster_->assign_interfaces({}, std::move(loaned_state_interfaces));
   }
 
-  realtime_tools::RealtimeBuffer<franka::RobotState> robot_state_buffer_;
-  realtime_tools::RealtimeBuffer<franka::RobotState>* robot_state_buffer_ptr_ =
-      &robot_state_buffer_;
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState> robot_state_box_;
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_ptr_ =
+      &robot_state_box_;
   hardware_interface::StateInterface robot_state_interface_{
       "mock_franka_robot_state", "robot_state",
-      reinterpret_cast<double*>(&robot_state_buffer_ptr_)};
-  // A single message is filled in place every cycle, so it is initialized exactly once.
-  void expectMessageInitializedOnce() {
-    EXPECT_CALL(*franka_robot_state_raw_, initialize_robot_state_msg(::testing::_)).Times(1);
+      reinterpret_cast<double*>(&robot_state_box_ptr_)};
+  // AsyncBuffer has three slots; each is initialized once in on_configure().
+  void expectMessageInitialized() {
+    EXPECT_CALL(*franka_robot_state_raw_, initialize_robot_state_msg(::testing::_)).Times(3);
   }
 
   void expectStateBufferResolves(bool resolves) {
@@ -88,13 +88,13 @@ TEST_F(TestFrankaRobotStateBroadcaster, test_init_return_success) {
 }
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_configure_return_success) {
-  expectMessageInitializedOnce();
+  expectMessageInitialized();
   EXPECT_EQ(broadcaster_->on_configure(rclcpp_lifecycle::State()),
             controller_interface::CallbackReturn::SUCCESS);
 }
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_activate_return_success) {
-  expectMessageInitializedOnce();
+  expectMessageInitialized();
   expectStateBufferResolves(true);
   EXPECT_EQ(broadcaster_->on_configure(rclcpp_lifecycle::State()),
             controller_interface::CallbackReturn::SUCCESS);
@@ -103,7 +103,7 @@ TEST_F(TestFrankaRobotStateBroadcaster, test_activate_return_success) {
 }
 
 TEST_F(TestFrankaRobotStateBroadcaster, an_unclaimable_state_interface_fails_activation) {
-  expectMessageInitializedOnce();
+  expectMessageInitialized();
   broadcaster_->release_interfaces();
 
   EXPECT_EQ(broadcaster_->on_configure(rclcpp_lifecycle::State()),
@@ -113,7 +113,7 @@ TEST_F(TestFrankaRobotStateBroadcaster, an_unclaimable_state_interface_fails_act
 }
 
 TEST_F(TestFrankaRobotStateBroadcaster, an_unresolvable_state_buffer_fails_activation) {
-  expectMessageInitializedOnce();
+  expectMessageInitialized();
   expectStateBufferResolves(false);
   EXPECT_EQ(broadcaster_->on_configure(rclcpp_lifecycle::State()),
             controller_interface::CallbackReturn::SUCCESS);
@@ -122,7 +122,7 @@ TEST_F(TestFrankaRobotStateBroadcaster, an_unresolvable_state_buffer_fails_activ
 }
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_deactivate_return_success) {
-  expectMessageInitializedOnce();
+  expectMessageInitialized();
   EXPECT_EQ(broadcaster_->on_configure(rclcpp_lifecycle::State()),
             controller_interface::CallbackReturn::SUCCESS);
   EXPECT_EQ(broadcaster_->on_deactivate(rclcpp_lifecycle::State()),
@@ -130,7 +130,7 @@ TEST_F(TestFrankaRobotStateBroadcaster, test_deactivate_return_success) {
 }
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_update_without_franka_state_interface_returns_error) {
-  expectMessageInitializedOnce();
+  expectMessageInitialized();
   expectStateBufferResolves(true);
 
   // Simulate failure: no valid state interface
@@ -149,7 +149,7 @@ TEST_F(TestFrankaRobotStateBroadcaster, test_update_without_franka_state_interfa
 }
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_update_with_franka_state_returns_success) {
-  expectMessageInitializedOnce();
+  expectMessageInitialized();
   expectStateBufferResolves(true);
 
   // Simulate success: valid state interface

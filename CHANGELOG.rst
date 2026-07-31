@@ -5,13 +5,14 @@ Changelog for package franka_ros2
 UNRELEASED
 ----------
 
+* fix: thread-safe access to robot state interface (changed from RealtimeBuffer to RealtimeThreadSafeBox). 
+  This fixes possible race conditions that could happen when running the broadcaster and the 
+  cartesian impedance example controller with async=true.
+* fix: default thread priority for franka_hardware interface threads is now 98 (was 50) to 
+  ensure RT stability.
 * docu: add an umbrella guide for the relocated description extensions,
   including composition layers, mounting points, prefix rules, and external
   gripper attachment.
-* fix: using best_effort QoS for franka_robot_state_broadcaster convenience topics to avoid blocking the RT loop in sync scenario.
-* fix: default thread priority for franka_hardware interface threads is now 98 (was 50) to 
-  ensure RT stability.
-* fix: franka_robot_state_broadcaster async by default to avoid blocking the RT loop in sync scenario.
 * docs: comprehensive documentation audit and fixes across 12 packages — corrected
   inaccurate launch arguments, removed references to non-existent files, fixed API method
   names, updated parameter names to match code, added undocumented launch args, improved

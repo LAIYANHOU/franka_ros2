@@ -242,7 +242,7 @@ TEST_F(
   ASSERT_EQ(states[21].get_name(),
             "fr3/robot_state");  // joint states (3*7) , then comes robot state
 
-  // The state interface exports a pointer to the RealtimeBuffer.
+  // The state interface exports a pointer to the RealtimeThreadSafeBox.
   // Verify it is a valid (non-zero) pointer value.
   ASSERT_NE(states[21].get_optional().value_or(0.0), 0.0);
 }

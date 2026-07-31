@@ -34,10 +34,10 @@ void FrankaRobotStateTest::SetUp() {
   robot_state.q_d = joint_velocities;
   robot_state.O_T_EE = end_effector_pose;
   robot_state.robot_mode = robot_mode;
-  robot_state_buffer.writeFromNonRT(robot_state);
+  robot_state_box.set(robot_state);
 
   hardware_interface::StateInterface franka_hw_state{
-      robot_name, franka_state_interface_name, reinterpret_cast<double*>(&robot_state_buffer_ptr)};
+      robot_name, franka_state_interface_name, reinterpret_cast<double*>(&robot_state_box_ptr)};
   std::vector<hardware_interface::LoanedStateInterface> temp_state_interfaces;
 
   temp_state_interfaces.reserve(size);
@@ -105,12 +105,12 @@ TEST_F(FrankaRobotStateTest, the_buffer_cannot_be_resolved_without_the_state_int
   ASSERT_FALSE(franka_state_friend->initialize_state_buffer());
 }
 
-TEST_F(FrankaRobotStateTest, the_cached_buffer_keeps_serving_fresh_state) {
+TEST_F(FrankaRobotStateTest, the_cached_box_keeps_serving_fresh_state) {
   // The interface is only consulted at initialization, so later writes have to reach the
-  // message through the cached buffer rather than through another lookup.
+  // message through the cached box rather than through another lookup.
   std::array<double, 7> moved_angles = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7};
   robot_state.q = moved_angles;
-  robot_state_buffer.writeFromNonRT(robot_state);
+  robot_state_box.set(robot_state);
 
   ASSERT_TRUE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
   ASSERT_THAT(moved_angles,

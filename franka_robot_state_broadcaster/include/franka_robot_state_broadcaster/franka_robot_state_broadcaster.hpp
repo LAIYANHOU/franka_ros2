@@ -14,15 +14,19 @@
 
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <string>
-#include <vector>
+#include <thread>
 
 #include <controller_interface/controller_interface.hpp>
 #include <rclcpp_lifecycle/lifecycle_publisher.hpp>
 #include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
 
 #include "franka_msgs/msg/franka_robot_state.hpp"
+#include "franka_robot_state_broadcaster/async_buffer.hpp"
 #include "franka_robot_state_broadcaster/franka_robot_state_broadcaster_parameters.hpp"
 #include "franka_semantic_components/franka_robot_state.hpp"
 
@@ -31,18 +35,26 @@ namespace franka_robot_state_broadcaster {
 /**
  * Publishes the full Franka robot state and a set of convenience topics.
  *
- * Publishing the ROS message might cost a few dozen microseconds, which is too much to spend
- * between the arrival of a robot state and the departure of the matching command. The
- * controller therefore defaults to running asynchronously: the controller manager only
- * signals it, and both the message construction and the publishing happen on the
- * controller's own thread. Another comparable approach would be to move the publishing directly
- * from a separate controller directly to franka_hardware_interface + realtime publishers, which
- * spawn their own thread for publishing.
+ * The controller update() path copies robot state from the hardware
+ * RealtimeThreadSafeBox, builds the ROS message into an AsyncBuffer slot, and
+ * returns. A dedicated publish thread drains that buffer and performs all DDS
+ * publishes, so the publish cost does not sit between robot state arrival
+ * and command egress.
+ *
+ * Keep this controller synchronous (is_async: false) so it shares the controller
+ * manager thread with model-based controllers that also read the state box.
  */
 class FrankaRobotStateBroadcaster : public controller_interface::ControllerInterface {
  public:
   explicit FrankaRobotStateBroadcaster(
       std::unique_ptr<franka_semantic_components::FrankaRobotState> franka_robot_state = nullptr);
+
+  ~FrankaRobotStateBroadcaster() override;
+
+  // SCHED_FIFO priority for the publish thread. Stay below the CM RT loop (97)
+  // and below typical PREEMPT_RT NIC IRQ threads (50) so publishing cannot delay
+  // packet delivery or control.
+  static constexpr int kPublishThreadPriority = 30;
 
   [[nodiscard]] controller_interface::InterfaceConfiguration command_interface_configuration()
       const override;
@@ -93,13 +105,19 @@ class FrankaRobotStateBroadcaster : public controller_interface::ControllerInter
 
   std::unique_ptr<franka_semantic_components::FrankaRobotState> franka_robot_state_;
 
-  // Filled in place every cycle and published from the same thread, so a single message
-  // suffices and stays resident in cache.
-  franka_msgs::msg::FrankaRobotState state_msg_;
+  AsyncBuffer<franka_msgs::msg::FrankaRobotState> state_buffer_;
 
-  // Convenience topics publish every N-th cycle, where N is derived in on_configure()
-  // from the convenience_publish_rate parameter.
+  std::thread publish_thread_;
+  std::atomic<bool> is_publish_thread_running_{false};
+  std::mutex publish_mutex_;
+  std::condition_variable publish_cv_;
+  std::atomic<bool> data_ready_{false};
+
+  // Convenience topics publish every N-th fresh sample on the publish thread.
   int convenience_publish_skip_{1};
-  int convenience_counter_{0};
+
+  void startPublishThread();
+  void stopPublishThread();
+  void publishRunner();
 };
 }  // namespace franka_robot_state_broadcaster

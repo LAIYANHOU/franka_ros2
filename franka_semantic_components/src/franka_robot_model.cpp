@@ -64,7 +64,7 @@ auto FrankaRobotModel::initialize() -> void {
       franka_model_interface != state_interfaces_.end()) {
     robot_model_ =
         bit_cast<franka_hardware::Model*>((*franka_model_interface).get().get_optional().value());
-    robot_state_buffer_ = bit_cast<realtime_tools::RealtimeBuffer<franka::RobotState>*>(
+    robot_state_box_ = bit_cast<realtime_tools::RealtimeThreadSafeBox<franka::RobotState>*>(
         (*franka_state_interface).get().get_optional().value());
   } else {
     RCLCPP_ERROR(rclcpp::get_logger("franka_model_semantic_component"),
@@ -121,8 +121,11 @@ auto FrankaRobotModel::refreshRobotState() -> void {
   if (!initialized_) {
     initialize();
   }
-  cached_robot_state_ = *robot_state_buffer_->readFromRT();
-  last_refresh_time_ = std::chrono::steady_clock::now();
+  // Best-effort: if the hardware holds the box for try_set, keep the previous cache.
+  if (const auto state = robot_state_box_->try_get()) {
+    cached_robot_state_ = *state;
+    last_refresh_time_ = std::chrono::steady_clock::now();
+  }
 }
 
 auto FrankaRobotModel::getCachedRobotState() -> const franka::RobotState& {

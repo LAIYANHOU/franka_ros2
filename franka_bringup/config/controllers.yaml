@@ -104,11 +104,6 @@
 /**:
   franka_robot_state_broadcaster:
     ros__parameters:
-      # keep this to publish the state message on the controller's own thread. 
-      # Leaving this on the controller manager's real-time is costly.
-      is_async: true 
-      # TODO (francando): on luth, use async_parameters.thread_priority
-      thread_priority: 30
       # Publish rate in Hz for convenience topics (current_pose, joint_states, wrenches, etc.).
       # Clamped to this controller's update_rate, which defaults to the controller
       # manager's. The full robot state always publishes at the update rate.

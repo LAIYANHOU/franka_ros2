@@ -97,7 +97,7 @@ std::vector<StateInterface> FrankaHardwareInterface::export_state_interfaces() {
   state_interfaces.emplace_back(StateInterface(
       prefix_ + robot_type_, k_robot_state_interface_name,
       reinterpret_cast<double*>(  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-          &rt_robot_state_buffer_ptr_)));
+          &robot_state_box_ptr_)));
   state_interfaces.emplace_back(StateInterface(
       prefix_ + robot_type_, k_robot_model_interface_name,
       reinterpret_cast<double*>(  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -249,7 +249,6 @@ hardware_interface::return_type FrankaHardwareInterface::read(const rclcpp::Time
 
   franka::RobotState robot_state;
   try {
-    // Write new state into the RealtimeBuffer for thread-safe access by consumers
     robot_state = robot_->readOnce();
   } catch (const franka::ControlException& e) {
     RCLCPP_ERROR(getLogger(), "%s", e.what());
@@ -257,7 +256,10 @@ hardware_interface::return_type FrankaHardwareInterface::read(const rclcpp::Time
     return hardware_interface::return_type::ERROR;
   }
 
-  rt_robot_state_buffer_.writeFromNonRT(robot_state);
+  if(!robot_state_box_.try_set(robot_state)){
+    RCLCPP_WARN_THROTTLE(getLogger(), *this->get_clock(), 1000,
+                 "Failed to set franka state via franka state interface, dropping robot state for this cycle.");
+  }
   robot_time_state_ = robot_state.time.toSec();
   initializePositionCommands(robot_state);
 
