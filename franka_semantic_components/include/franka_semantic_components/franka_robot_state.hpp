@@ -67,9 +67,8 @@ class FrankaRobotState
   auto get_robot_state() -> franka::RobotState*;
 
  private:
-  franka::RobotState robot_state_cache_{};
-  bool robot_state_cache_valid_{false};
-  franka::RobotState* robot_state_ptr{nullptr};
+  franka::RobotState robot_state_;
+  bool cached_robot_state_valid_{false};
   realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_{nullptr};
 
   std::string robot_description_;

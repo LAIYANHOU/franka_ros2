@@ -121,7 +121,7 @@ auto FrankaRobotModel::refreshRobotState() -> void {
   if (!initialized_) {
     initialize();
   }
-  // Best-effort: if the hardware holds the box for try_set, keep the previous cache.
+  // Best-effort under mutex: if the hardware holds the box for set, keep the previous cache.
   if (const auto state = robot_state_box_->try_get()) {
     cached_robot_state_ = *state;
     last_refresh_time_ = std::chrono::steady_clock::now();

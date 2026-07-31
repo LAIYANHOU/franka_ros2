@@ -152,7 +152,7 @@ controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_configure(
 
     // Initialize all three triple-buffer slots so get_values_as_message() never
     // writes into a default-constructed message with empty vectors.
-    for (int i = 0; i < AsyncBuffer::kSize; ++i) {
+    for (size_t i = 0; i < AsyncBuffer<franka_msgs::msg::FrankaRobotState>::kSize; ++i) {
       auto& msg = state_buffer_.get_free_buffer();
       franka_robot_state_->initialize_robot_state_msg(msg);
       state_buffer_.commit_free_buffer();

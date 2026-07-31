@@ -12,9 +12,6 @@
         manage: false
         print_warnings: false
 
-      communication_test_controller:
-        type: franka_example_controllers/CommunicationTestController
-
       fr3_duo_joint_impedance_example_controller:
         type: franka_example_controllers/Fr3DuoJointImpedanceExampleController
 

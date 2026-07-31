@@ -256,10 +256,8 @@ hardware_interface::return_type FrankaHardwareInterface::read(const rclcpp::Time
     return hardware_interface::return_type::ERROR;
   }
 
-  if(!robot_state_box_.try_set(robot_state)){
-    RCLCPP_WARN_THROTTLE(getLogger(), *this->get_clock(), 1000,
-                 "Failed to set franka state via franka state interface, dropping robot state for this cycle.");
-  }
+  // robot state topic is reliable, this set is blocking!
+  robot_state_box_.set(robot_state);
   robot_time_state_ = robot_state.time.toSec();
   initializePositionCommands(robot_state);
 

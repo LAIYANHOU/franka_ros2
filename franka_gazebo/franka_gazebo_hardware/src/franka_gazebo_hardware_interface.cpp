@@ -541,7 +541,7 @@ auto FrankaGazeboHardwareInterface::updateRobotState(const rclcpp::Time& time,
   // Refresh the exported cartesian_pose_state interfaces from the synthetic pose.
   cartesian_pose_state_ = robot_state.O_T_EE;
 
-  robot_state_box_.try_set(robot_state);
+  robot_state_box_.set(robot_state);
 }
 
 auto FrankaGazeboHardwareInterface::estimateExternalWrench(

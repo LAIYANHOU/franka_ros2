@@ -167,7 +167,7 @@ class FrankaHardwareInterface : public hardware_interface::SystemInterface {
 
   const std::vector<InterfaceInfo> command_interfaces_info_;
 
-  // Latest RobotState for controllers/broadcasters. try_set from read(); consumers
+  // Latest RobotState for controllers/broadcasters. set from read(); consumers
   // copy under the box mutex via try_get()/get() — safe for multiple readers.
   realtime_tools::RealtimeThreadSafeBox<franka::RobotState> robot_state_box_;
   realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_ptr_ =

@@ -248,8 +248,7 @@ auto FrankaRobotState::initialize_state_buffer() -> bool {
 
 auto FrankaRobotState::reset_state_buffer() -> void {
   robot_state_box_ = nullptr;
-  robot_state_ptr = nullptr;
-  robot_state_cache_valid_ = false;
+  cached_robot_state_valid_ = false;
 }
 
 auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState& message) -> bool {
@@ -259,92 +258,89 @@ auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState&
                  "after assigning the loaned state interfaces?");
     return false;
   }
-  // Best-effort copy under the box mutex. Controllers that also read the box (e.g. model-based
-  // impedance) and the hardware try_set contend on the same lock; a failed try_get is not an
-  // error — reuse the last successful sample.
-  if (const auto robot_state = robot_state_box_->try_get()) {
-    robot_state_cache_ = *robot_state;
-    robot_state_cache_valid_ = true;
-  } else if (!robot_state_cache_valid_) {
-    return false;
-  }
-  robot_state_ptr = &robot_state_cache_;
+
+  // Robot state consumers are assuming this is reliable. 
+  // Don't drop any robot state the hardware has written to the box. 
+  // Warning: this blocks until the hardware releases the box!
+  robot_state_ = robot_state_box_->get();
+  cached_robot_state_valid_ = true;
 
   // Update the time stamps of the data
   translation::updateTimeStamps(message.header.stamp, message);
 
   // Collision and contact indicators
   message.collision_indicators = translation::toCollisionIndicators(
-      robot_state_ptr->cartesian_collision, robot_state_ptr->cartesian_contact,
-      robot_state_ptr->joint_collision, robot_state_ptr->joint_contact);
+      robot_state_.cartesian_collision, robot_state_.cartesian_contact,
+      robot_state_.joint_collision, robot_state_.joint_contact);
 
   // The joint states
   const auto n_joints = message.measured_joint_state.position.size();
-  std::copy_n(robot_state_ptr->q.cbegin(), n_joints, message.measured_joint_state.position.begin());
-  std::copy_n(robot_state_ptr->dq.cbegin(), n_joints,
+  std::copy_n(robot_state_.q.cbegin(), n_joints, message.measured_joint_state.position.begin());
+  std::copy_n(robot_state_.dq.cbegin(), n_joints,
               message.measured_joint_state.velocity.begin());
-  std::copy_n(robot_state_ptr->tau_J.cbegin(), n_joints,
+  std::copy_n(robot_state_.tau_J.cbegin(), n_joints,
               message.measured_joint_state.effort.begin());
 
-  std::copy_n(robot_state_ptr->q_d.cbegin(), n_joints,
+  std::copy_n(robot_state_.q_d.cbegin(), n_joints,
               message.desired_joint_state.position.begin());
-  std::copy_n(robot_state_ptr->dq_d.cbegin(), n_joints,
+  std::copy_n(robot_state_.dq_d.cbegin(), n_joints,
               message.desired_joint_state.velocity.begin());
-  std::copy_n(robot_state_ptr->tau_J_d.cbegin(), n_joints,
+  std::copy_n(robot_state_.tau_J_d.cbegin(), n_joints,
               message.desired_joint_state.effort.begin());
 
-  std::copy_n(robot_state_ptr->theta.cbegin(), n_joints,
+  std::copy_n(robot_state_.theta.cbegin(), n_joints,
               message.measured_joint_motor_state.position.begin());
-  std::copy_n(robot_state_ptr->dtheta.cbegin(), n_joints,
+  std::copy_n(robot_state_.dtheta.cbegin(), n_joints,
               message.measured_joint_motor_state.velocity.begin());
 
-  std::copy_n(robot_state_ptr->tau_ext_hat_filtered.cbegin(), n_joints,
+  std::copy_n(robot_state_.tau_ext_hat_filtered.cbegin(), n_joints,
               message.tau_ext_hat_filtered.effort.begin());
 
-  message.ddq_d = robot_state_ptr->ddq_d;
-  message.dtau_j = robot_state_ptr->dtau_J;
+  message.ddq_d = robot_state_.ddq_d;
+  message.dtau_j = robot_state_.dtau_J;
 
   // Output for the elbow
-  message.elbow = translation::toElbow(robot_state_ptr->elbow, robot_state_ptr->elbow_d,
-                                       robot_state_ptr->elbow_c, robot_state_ptr->delbow_c,
-                                       robot_state_ptr->ddelbow_c);
+  message.elbow = translation::toElbow(robot_state_.elbow, robot_state_.elbow_d,
+                                       robot_state_.elbow_c, robot_state_.delbow_c,
+                                       robot_state_.ddelbow_c);
 
   // Active wrenches on the stiffness frame
-  message.k_f_ext_hat_k.wrench = translation::toWrench(robot_state_ptr->K_F_ext_hat_K);
-  message.o_f_ext_hat_k.wrench = translation::toWrench(robot_state_ptr->O_F_ext_hat_K);
+  message.k_f_ext_hat_k.wrench = translation::toWrench(robot_state_.K_F_ext_hat_K);
+  message.o_f_ext_hat_k.wrench = translation::toWrench(robot_state_.O_F_ext_hat_K);
 
   // The transformations between different frames
-  message.o_t_ee.pose = translation::toPose(robot_state_ptr->O_T_EE);
-  message.o_t_ee_d.pose = translation::toPose(robot_state_ptr->O_T_EE_d);
-  message.o_t_ee_c.pose = translation::toPose(robot_state_ptr->O_T_EE_c);
+  message.o_t_ee.pose = translation::toPose(robot_state_.O_T_EE);
+  message.o_t_ee_d.pose = translation::toPose(robot_state_.O_T_EE_d);
+  message.o_t_ee_c.pose = translation::toPose(robot_state_.O_T_EE_c);
 
-  message.f_t_ee.pose = translation::toPose(robot_state_ptr->F_T_EE);
-  message.ee_t_k.pose = translation::toPose(robot_state_ptr->EE_T_K);
+  message.f_t_ee.pose = translation::toPose(robot_state_.F_T_EE);
+  message.ee_t_k.pose = translation::toPose(robot_state_.EE_T_K);
 
-  message.o_dp_ee_d.twist = translation::toTwist(robot_state_ptr->O_dP_EE_d);
-  message.o_dp_ee_c.twist = translation::toTwist(robot_state_ptr->O_dP_EE_c);
-  message.o_ddp_ee_c.accel = translation::toAccel(robot_state_ptr->O_ddP_EE_c);
+  message.o_dp_ee_d.twist = translation::toTwist(robot_state_.O_dP_EE_d);
+  message.o_dp_ee_c.twist = translation::toTwist(robot_state_.O_dP_EE_c);
+  message.o_ddp_ee_c.accel = translation::toAccel(robot_state_.O_ddP_EE_c);
 
   // The inertias of the robot
   message.inertia_ee.inertia = translation::toInertia(
-      robot_state_ptr->m_ee, robot_state_ptr->F_x_Cee, robot_state_ptr->I_ee);
+      robot_state_.m_ee, robot_state_.F_x_Cee, robot_state_.I_ee);
   message.inertia_load.inertia = translation::toInertia(
-      robot_state_ptr->m_load, robot_state_ptr->F_x_Cload, robot_state_ptr->I_load);
+      robot_state_.m_load, robot_state_.F_x_Cload, robot_state_.I_load);
   message.inertia_total.inertia = translation::toInertia(
-      robot_state_ptr->m_total, robot_state_ptr->F_x_Ctotal, robot_state_ptr->I_total);
+      robot_state_.m_total, robot_state_.F_x_Ctotal, robot_state_.I_total);
 
   // Errors and more
-  message.time = robot_state_ptr->time.toSec();
-  message.control_command_success_rate = robot_state_ptr->control_command_success_rate;
-  message.current_errors = translation::errorsToMessage(robot_state_ptr->current_errors);
-  message.last_motion_errors = translation::errorsToMessage(robot_state_ptr->last_motion_errors);
+  message.time = robot_state_.time.toSec();
+  message.control_command_success_rate = robot_state_.control_command_success_rate;
+  message.current_errors = translation::errorsToMessage(robot_state_.current_errors);
+  message.last_motion_errors = translation::errorsToMessage(robot_state_.last_motion_errors);
 
-  message.robot_mode = static_cast<uint8_t>(robot_state_ptr->robot_mode);
+  message.robot_mode = static_cast<uint8_t>(robot_state_.robot_mode);
+  
   return true;
 }
 
 auto FrankaRobotState::get_robot_state() -> franka::RobotState* {
-  return robot_state_ptr;
+  return cached_robot_state_valid_ ? &robot_state_ : nullptr;
 }
 
 }  // namespace franka_semantic_components
