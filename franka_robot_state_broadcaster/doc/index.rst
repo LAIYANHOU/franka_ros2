@@ -62,21 +62,7 @@ Example in ``controllers.yaml``:
 Published Topics
 ----------------
 
-Every topic listed here, the full robot state included, is published with
-**best_effort** reliability, ``KEEP_LAST`` history of depth 1 and ``volatile``
-durability. Each carries a stream in which every sample supersedes the previous one, so
-a subscriber only ever wants the newest value. Best effort also prevents a slow
-subscriber from stalling the broadcaster's publish thread, which reliable delivery would
-allow for up to the RMW's maximum blocking time.
-
-.. important::
-
-    Subscribers must request **best_effort** reliability. The ``rclcpp`` and ``rclpy``
-    defaults are **reliable**, which is **not compatible** with these publishers: the
-    endpoints never match, no messages arrive, and nothing is reported as an error. This
-    applies to custom nodes, to ``ros2 topic echo`` (use
-    ``--qos-reliability best_effort``) and to rviz2 (set Reliability Policy to
-    "Best Effort" in the display properties).
+Full robot state (reliable QoS):
 
 .. note::
 
@@ -103,6 +89,15 @@ The following topics are published at the rate configured by
 * ``~/external_joint_torques`` (sensor_msgs/JointState): Estimated external joint torques.
 * ``~/external_wrench_in_base_frame`` (geometry_msgs/WrenchStamped): Estimated external wrench in base frame.
 * ``~/external_wrench_in_stiffness_frame`` (geometry_msgs/WrenchStamped): Estimated external wrench in stiffness frame.
+
+.. important::
+
+    Subscribers for these convenience topics must request **best_effort** reliability. The ``rclcpp`` and ``rclpy``
+    defaults are **reliable**, which is **not compatible** with these publishers: the
+    endpoints never match, no messages arrive, and nothing is reported as an error. This
+    applies to custom nodes, to ``ros2 topic echo`` (use
+    ``--qos-reliability best_effort``) and to rviz2 (set Reliability Policy to
+    "Best Effort" in the display properties).
 
 Integration
 -----------

@@ -18,7 +18,6 @@
 #include <optional>
 #include <stack>
 
-#include <realtime_tools/realtime_buffer.hpp>
 #include "rclcpp/logging.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "std_msgs/msg/header.hpp"
@@ -216,6 +215,24 @@ auto FrankaRobotState::initialize_robot_state_msg(franka_msgs::msg::FrankaRobotS
   message.tau_ext_hat_filtered.effort.resize(joint_names.size(), 0.0);
 }
 
+auto FrankaRobotState::assign_loaned_state_interfaces(
+    std::vector<hardware_interface::LoanedStateInterface>& state_interfaces) -> bool {
+  if (!Base::assign_loaned_state_interfaces(state_interfaces)) {
+    return false;
+  }
+  if (!initialize_state_buffer()) {
+    release_interfaces();
+    return false;
+  }
+  return true;
+}
+
+auto FrankaRobotState::release_interfaces() -> void {
+  robot_state_box_ = nullptr;
+  cached_robot_state_valid_ = false;
+  Base::release_interfaces();
+}
+
 auto FrankaRobotState::initialize_state_buffer() -> bool {
   // assign_loaned_state_interfaces() claims the interfaces named in the constructor and
   // orders them to match, so a complete claim leaves the robot state interface first.
@@ -246,16 +263,9 @@ auto FrankaRobotState::initialize_state_buffer() -> bool {
   return true;
 }
 
-auto FrankaRobotState::reset_state_buffer() -> void {
-  robot_state_box_ = nullptr;
-  cached_robot_state_valid_ = false;
-}
-
 auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState& message) -> bool {
-  if (robot_state_box_ == nullptr) {
-    RCLCPP_ERROR(rclcpp::get_logger("franka_state_semantic_component"),
-                 "Franka state box is not initialized! Did you call initialize_state_buffer() "
-                 "after assigning the loaned state interfaces?");
+  // Safety net if interfaces were claimed without going through our assign() wrapper.
+  if (robot_state_box_ == nullptr && !initialize_state_buffer()) {
     return false;
   }
 

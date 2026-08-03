@@ -201,11 +201,8 @@ controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_activate(
     const rclcpp_lifecycle::State& /*previous_state*/) {
   if (!franka_robot_state_->assign_loaned_state_interfaces(state_interfaces_)) {
     RCLCPP_ERROR(get_node()->get_logger(),
-                 "Could not claim the robot state interface. Check that 'robot_state' is listed "
-                 "among this controller's state interfaces and that the hardware exports it.");
-    return CallbackReturn::ERROR;
-  }
-  if (!franka_robot_state_->initialize_state_buffer()) {
+                 "Could not claim or resolve the robot state interface. Check that 'robot_state' is "
+                 "listed among this controller's state interfaces and that the hardware exports it.");
     return CallbackReturn::ERROR;
   }
   startPublishThread();
@@ -215,7 +212,6 @@ controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_activate(
 controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_deactivate(
     const rclcpp_lifecycle::State& /*previous_state*/) {
   stopPublishThread();
-  franka_robot_state_->reset_state_buffer();
   franka_robot_state_->release_interfaces();
   return CallbackReturn::SUCCESS;
 }
@@ -233,7 +229,10 @@ controller_interface::return_type FrankaRobotStateBroadcaster::update(
   }
 
   state_buffer_.commit_free_buffer();
-  data_ready_.store(true, std::memory_order_release);
+  {
+    std::lock_guard<std::mutex> lock(publish_mutex_);
+    data_ready_.store(true, std::memory_order_release);
+  }
   publish_cv_.notify_one();
 
   return controller_interface::return_type::OK;

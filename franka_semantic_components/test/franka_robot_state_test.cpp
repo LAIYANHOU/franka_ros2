@@ -43,8 +43,7 @@ void FrankaRobotStateTest::SetUp() {
   temp_state_interfaces.reserve(size);
 
   temp_state_interfaces.emplace_back(franka_hw_state);
-  franka_state_friend->assign_loaned_state_interfaces(temp_state_interfaces);
-  ASSERT_TRUE(franka_state_friend->initialize_state_buffer());
+  ASSERT_TRUE(franka_state_friend->assign_loaned_state_interfaces(temp_state_interfaces));
   franka_state_friend->initialize_robot_state_msg(franka_robot_state_msg);
   ASSERT_TRUE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
 }
@@ -92,21 +91,26 @@ TEST_F(FrankaRobotStateTest,
 }
 
 TEST_F(FrankaRobotStateTest, a_released_buffer_stops_the_message_from_being_built) {
-  franka_state_friend->reset_state_buffer();
   franka_state_friend->release_interfaces();
 
   ASSERT_FALSE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
 }
 
-TEST_F(FrankaRobotStateTest, the_buffer_cannot_be_resolved_without_the_state_interface) {
-  franka_state_friend->reset_state_buffer();
+TEST_F(FrankaRobotStateTest, a_null_state_box_fails_assignment) {
   franka_state_friend->release_interfaces();
 
-  ASSERT_FALSE(franka_state_friend->initialize_state_buffer());
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* null_box_ptr = nullptr;
+  hardware_interface::StateInterface franka_hw_state{
+      robot_name, franka_state_interface_name, reinterpret_cast<double*>(&null_box_ptr)};
+  std::vector<hardware_interface::LoanedStateInterface> temp_state_interfaces;
+  temp_state_interfaces.emplace_back(franka_hw_state);
+
+  ASSERT_FALSE(franka_state_friend->assign_loaned_state_interfaces(temp_state_interfaces));
+  ASSERT_EQ(franka_state_friend->state_interfaces_.size(), 0u);
 }
 
 TEST_F(FrankaRobotStateTest, the_cached_box_keeps_serving_fresh_state) {
-  // The interface is only consulted at initialization, so later writes have to reach the
+  // The interface is only consulted at assignment, so later writes have to reach the
   // message through the cached box rather than through another lookup.
   std::array<double, 7> moved_angles = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7};
   robot_state.q = moved_angles;

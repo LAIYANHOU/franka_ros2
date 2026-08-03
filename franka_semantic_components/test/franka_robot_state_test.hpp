@@ -32,6 +32,7 @@ class FrankaRobotStateTestFriend : public franka_semantic_components::FrankaRobo
   FRIEND_TEST(FrankaRobotStateTest,
               givenFrankaSemanticStateInitialized_whenMessageReturnedExpectsCorrectValues);
   FRIEND_TEST(FrankaRobotStateTest, robot_state_ptr_uncasted_correctly);
+  FRIEND_TEST(FrankaRobotStateTest, a_null_state_box_fails_assignment);
 
  public:
   // Use generation of interface names

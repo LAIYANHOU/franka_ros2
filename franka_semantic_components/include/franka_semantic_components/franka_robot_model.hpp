@@ -173,6 +173,10 @@ class FrankaRobotModel
 
   /**
    * @brief Refreshes the cached robot state from the RealtimeThreadSafeBox.
+   *
+   * The first sample blocks via get() so a default-constructed (all-zero) state
+   * can never reach model evaluations. Later refreshes are best-effort try_get();
+   * under contention the previous valid cache is kept.
    */
   auto refreshRobotState() -> void;
 
@@ -184,6 +188,7 @@ class FrankaRobotModel
   auto getCachedRobotState() -> const franka::RobotState&;
 
   bool initialized_{false};
+  bool cached_state_valid_{false};
   std::chrono::steady_clock::time_point last_refresh_time_{};
   franka::RobotState cached_robot_state_{};
   franka_hardware::Model* robot_model_;

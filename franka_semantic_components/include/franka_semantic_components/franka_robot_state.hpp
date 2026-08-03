@@ -34,27 +34,29 @@ class FrankaRobotState
   virtual ~FrankaRobotState() = default;
 
   /**
+   * Assign loaned state interfaces and resolve the robot state box the hardware
+   * exports through them.
+   *
+   * \return true when the interfaces were claimed and the box was resolved.
+   */
+  auto assign_loaned_state_interfaces(
+      std::vector<hardware_interface::LoanedStateInterface>& state_interfaces) -> bool;
+
+  /**
+   * Drop the cached box pointer and release loaned interfaces.
+   */
+  auto release_interfaces() -> void;
+
+  /**
    * @param[in/out] message Initializes this message to contain the respective frame_id information
    */
   virtual auto initialize_robot_state_msg(franka_msgs::msg::FrankaRobotState& message) -> void;
 
   /**
-   * Resolves the robot state box the hardware exports through its state interface and
-   * caches the pointer. Should be done once per activation. 
-   *
-   * Call after assign_loaned_state_interfaces() and before get_values_as_message().
-   * \return true if the box was resolved.
-   */
-  virtual auto initialize_state_buffer() -> bool;
-
-  /**
-   * Drops the cached box pointer. Call before releasing the loaned state interfaces.
-   */
-  auto reset_state_buffer() -> void;
-
-  /**
    * Constructs and return a FrankaRobotState message from the current values.
-   * \return FrankaRobotState message from values;
+   * Lazily resolves the state box if it was not resolved during
+   * assign_loaned_state_interfaces() (e.g. when interfaces were claimed via the base API).
+   * \return true if the message was populated; false if the state box could not be resolved.
    */
   virtual auto get_values_as_message(franka_msgs::msg::FrankaRobotState& message) -> bool;
 
@@ -67,6 +69,15 @@ class FrankaRobotState
   auto get_robot_state() -> franka::RobotState*;
 
  private:
+  using Base =
+      semantic_components::SemanticComponentInterface<franka_msgs::msg::FrankaRobotState>;
+
+  /**
+   * Resolves and caches the robot state box from the claimed state interface.
+   * \return true if the box was resolved.
+   */
+  auto initialize_state_buffer() -> bool;
+
   franka::RobotState robot_state_;
   bool cached_robot_state_valid_{false};
   realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_{nullptr};

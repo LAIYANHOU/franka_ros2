@@ -34,7 +34,6 @@ class MockFrankaRobotState : public franka_semantic_components::FrankaRobotState
       : FrankaRobotState(name, robot_description){};
 
   MOCK_METHOD(void, initialize_robot_state_msg, (franka_msgs::msg::FrankaRobotState&), (override));
-  MOCK_METHOD(bool, initialize_state_buffer, (), (override));
   MOCK_METHOD(bool, get_values_as_message, (franka_msgs::msg::FrankaRobotState&), (override));
 };
 
@@ -73,12 +72,6 @@ class TestFrankaRobotStateBroadcaster : public ::testing::Test {
     EXPECT_CALL(*franka_robot_state_raw_, initialize_robot_state_msg(::testing::_)).Times(3);
   }
 
-  void expectStateBufferResolves(bool resolves) {
-    EXPECT_CALL(*franka_robot_state_raw_, initialize_state_buffer())
-        .Times(1)
-        .WillOnce(::testing::Return(resolves));
-  }
-
   std::unique_ptr<FrankaRobotStateBroadcaster> broadcaster_;
   MockFrankaRobotState* franka_robot_state_raw_;
 };
@@ -95,7 +88,6 @@ TEST_F(TestFrankaRobotStateBroadcaster, test_configure_return_success) {
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_activate_return_success) {
   expectMessageInitialized();
-  expectStateBufferResolves(true);
   EXPECT_EQ(broadcaster_->on_configure(rclcpp_lifecycle::State()),
             controller_interface::CallbackReturn::SUCCESS);
   EXPECT_EQ(broadcaster_->on_activate(rclcpp_lifecycle::State()),
@@ -114,7 +106,8 @@ TEST_F(TestFrankaRobotStateBroadcaster, an_unclaimable_state_interface_fails_act
 
 TEST_F(TestFrankaRobotStateBroadcaster, an_unresolvable_state_buffer_fails_activation) {
   expectMessageInitialized();
-  expectStateBufferResolves(false);
+  robot_state_box_ptr_ = nullptr;
+
   EXPECT_EQ(broadcaster_->on_configure(rclcpp_lifecycle::State()),
             controller_interface::CallbackReturn::SUCCESS);
   EXPECT_EQ(broadcaster_->on_activate(rclcpp_lifecycle::State()),
@@ -131,7 +124,6 @@ TEST_F(TestFrankaRobotStateBroadcaster, test_deactivate_return_success) {
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_update_without_franka_state_interface_returns_error) {
   expectMessageInitialized();
-  expectStateBufferResolves(true);
 
   // Simulate failure: no valid state interface
   EXPECT_CALL(*franka_robot_state_raw_, get_values_as_message(::testing::_))
@@ -150,7 +142,6 @@ TEST_F(TestFrankaRobotStateBroadcaster, test_update_without_franka_state_interfa
 
 TEST_F(TestFrankaRobotStateBroadcaster, test_update_with_franka_state_returns_success) {
   expectMessageInitialized();
-  expectStateBufferResolves(true);
 
   // Simulate success: valid state interface
   EXPECT_CALL(*franka_robot_state_raw_, get_values_as_message(::testing::_))

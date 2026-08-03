@@ -5,11 +5,14 @@ Changelog for package franka_ros2
 UNRELEASED
 ----------
 
-* fix: thread-safe access to robot state interface (changed from RealtimeBuffer to RealtimeThreadSafeBox). 
+
+* fix: **BREAKING CHANGE** thread-safe access to robot state interface (changed from RealtimeBuffer to RealtimeThreadSafeBox).
   This fixes possible race conditions that could happen when running the broadcaster and the 
-  cartesian impedance example controller with async=true.
+  cartesian impedance example controller (e.g. via the `franka_semantic_components::FrankaRobotModel`) with async=true. 
+  Users of the `franka_semantic_components::FrankaRobotState` should be not impacted, only direct state interface users claiming the hardware interface.
 * fix: default thread priority for franka_hardware interface threads is now 98 (was 50) to 
   ensure RT stability.
+* fix: 
 * docu: add an umbrella guide for the relocated description extensions,
   including composition layers, mounting points, prefix rules, and external
   gripper attachment.
