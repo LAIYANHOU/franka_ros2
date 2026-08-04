@@ -91,12 +91,14 @@ class FrankaHardwareInterface : public hardware_interface::SystemInterface {
   };
 
   void initializePositionCommands(const franka::RobotState& robot_state);
+  void updateStateInterfaces(const franka::RobotState& robot_state);
 
   // Support Franka ros2 control interface version
   const int kSupportedControlInterfaceMajor = 1;
 
   ControlInterface active_mode_{ControlInterface::None};
   bool needs_initial_command_{true};
+  std::atomic<bool> control_fault_latched_{false};
   double robot_time_state_{0.0};
 
   std::shared_ptr<Robot> robot_;

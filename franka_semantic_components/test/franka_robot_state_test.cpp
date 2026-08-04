@@ -14,9 +14,13 @@
 
 #include "franka_robot_state_test.hpp"
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <research_interface/robot/error.h>
+#include <research_interface/robot/rbk_types.h>
 
 void FrankaRobotStateTest::TearDown() {
   franka_state_friend.reset(nullptr);
@@ -100,8 +104,8 @@ TEST_F(FrankaRobotStateTest, a_null_state_box_fails_assignment) {
   franka_state_friend->release_interfaces();
 
   realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* null_box_ptr = nullptr;
-  hardware_interface::StateInterface franka_hw_state{
-      robot_name, franka_state_interface_name, reinterpret_cast<double*>(&null_box_ptr)};
+  hardware_interface::StateInterface franka_hw_state{robot_name, franka_state_interface_name,
+                                                     reinterpret_cast<double*>(&null_box_ptr)};
   std::vector<hardware_interface::LoanedStateInterface> temp_state_interfaces;
   temp_state_interfaces.emplace_back(franka_hw_state);
 
@@ -119,6 +123,38 @@ TEST_F(FrankaRobotStateTest, the_cached_box_keeps_serving_fresh_state) {
   ASSERT_TRUE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
   ASSERT_THAT(moved_angles,
               ::testing::ElementsAreArray(franka_robot_state_msg.measured_joint_state.position));
+}
+
+TEST_F(FrankaRobotStateTest,
+       givenReflexRobotStateWithErrors_whenMessageReturned_thenReflexModeAndErrorsArePublished) {
+  auto current_error_flags =
+      std::array<bool, sizeof(research_interface::robot::RobotState::errors)>{};
+  current_error_flags[static_cast<size_t>(research_interface::robot::Error::kJointReflex)] = true;
+  current_error_flags[static_cast<size_t>(
+      research_interface::robot::Error::kForceControlSafetyViolation)] = true;
+
+  auto last_motion_error_flags =
+      std::array<bool, sizeof(research_interface::robot::RobotState::errors)>{};
+  last_motion_error_flags[static_cast<size_t>(research_interface::robot::Error::kCartesianReflex)] =
+      true;
+  last_motion_error_flags[static_cast<size_t>(
+      research_interface::robot::Error::kControllerTorqueDiscontinuity)] = true;
+
+  robot_state.robot_mode = franka::RobotMode::kReflex;
+  robot_state.current_errors = franka::Errors(current_error_flags);
+  robot_state.last_motion_errors = franka::Errors(last_motion_error_flags);
+  robot_state_box.set(robot_state);
+
+  ASSERT_TRUE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
+
+  EXPECT_EQ(franka_msgs::msg::FrankaRobotState::ROBOT_MODE_REFLEX,
+            franka_robot_state_msg.robot_mode);
+  EXPECT_TRUE(franka_robot_state_msg.current_errors.joint_reflex);
+  EXPECT_TRUE(franka_robot_state_msg.current_errors.force_control_safety_violation);
+  EXPECT_TRUE(franka_robot_state_msg.last_motion_errors.cartesian_reflex);
+  EXPECT_TRUE(franka_robot_state_msg.last_motion_errors.controller_torque_discontinuity);
+
+  franka_state_friend->release_interfaces();
 }
 
 TEST_F(FrankaRobotStateTest, givenInitializedRobotStateMsg_thenCorrectFrameIDs) {

@@ -72,8 +72,7 @@ class FrankaRobotStateTest : public ::testing::Test {
   const std::string franka_state_interface_name = "robot_state";
   franka::RobotState robot_state;
   realtime_tools::RealtimeThreadSafeBox<franka::RobotState> robot_state_box;
-  realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_ptr =
-      &robot_state_box;
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_ptr = &robot_state_box;
 
   std::array<double, 7> joint_angles = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   std::array<double, 7> joint_velocities = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
