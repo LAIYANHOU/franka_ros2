@@ -7,7 +7,7 @@
   controller_manager:
     ros__parameters:
       update_rate: 1000
-      thread_priority: 98
+      thread_priority: 97
       overruns:
         manage: false
         print_warnings: false
@@ -102,7 +102,8 @@
   franka_robot_state_broadcaster:
     ros__parameters:
       # Publish rate in Hz for convenience topics (current_pose, joint_states, wrenches, etc.).
-      # Full robot state always publishes at the controller update rate (1kHz).
+      # Clamped to this controller's update_rate, which defaults to the controller
+      # manager's. The full robot state always publishes at the update rate.
       convenience_publish_rate: 1000
 
 /**:

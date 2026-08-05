@@ -23,7 +23,7 @@
 #include <vector>
 
 #include <realtime_tools/mutex.hpp>
-#include <realtime_tools/realtime_buffer.hpp>
+#include <realtime_tools/realtime_thread_safe_box.hpp>
 
 #include <hardware_interface/hardware_info.hpp>
 #include <hardware_interface/system_interface.hpp>
@@ -167,11 +167,11 @@ class FrankaHardwareInterface : public hardware_interface::SystemInterface {
 
   const std::vector<InterfaceInfo> command_interfaces_info_;
 
-  // Thread-safe buffer for RobotState shared with consumers (e.g. broadcaster).
-  // Hardware read() writes via writeFromNonRT(), consumers read via readFromRT().
-  realtime_tools::RealtimeBuffer<franka::RobotState> rt_robot_state_buffer_;
-  realtime_tools::RealtimeBuffer<franka::RobotState>* rt_robot_state_buffer_ptr_ =
-      &rt_robot_state_buffer_;
+  // Latest RobotState for controllers/broadcasters. set from read(); consumers
+  // copy under the box mutex via try_get()/get() — safe for multiple readers.
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState> robot_state_box_;
+  realtime_tools::RealtimeThreadSafeBox<franka::RobotState>* robot_state_box_ptr_ =
+      &robot_state_box_;
   Model* hw_franka_model_ptr_ = nullptr;
   franka::Duration robot_time_;
 

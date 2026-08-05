@@ -7,7 +7,7 @@
     params="robot_types
             arm_prefixes
             is_async:=false
-            thread_priority:=50
+            thread_priority:=97
             include_effort_command
             include_finger_joint
             **hardware_plugin">

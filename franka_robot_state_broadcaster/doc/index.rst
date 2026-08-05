@@ -9,6 +9,13 @@ Functionality
 The broadcaster publishes the Franka robot state on ``~/robot_state``. Without a
 namespace, this resolves to ``/franka_robot_state_broadcaster/robot_state``.
 
+``update()`` runs on the controller manager thread: it reads the hardware
+``RealtimeThreadSafeBox<franka::RobotState>``, builds the ROS message into an
+``AsyncBuffer``, and returns. A dedicated publish thread drains that buffer and
+performs all DDS publishes, so publish cost does not sit between robot state
+arrival and command egress. Keep ``is_async: false`` (the default) so this
+controller shares the CM thread with other readers of the same state box.
+
 This controller is spawned by ``franka.launch.py`` in ``franka_bringup``. Therefore,
 any setup that launches ``franka.launch.py`` also publishes the robot state topic.
 
@@ -57,22 +64,22 @@ Published Topics
 
 Full robot state (reliable QoS):
 
-* ``~/robot_state`` (franka_msgs/FrankaRobotState): Complete robot state at 1 kHz.
-  Published with **reliable** QoS (``rclcpp::SystemDefaultsQoS()``).
+.. note::
 
-Convenience topics (best_effort QoS):
+    ``ros2 bag record`` adopts the QoS offered by the publisher, so recordings of these
+    topics are best_effort as well and may omit samples if the writer cannot keep up.
+    Requesting reliable on the subscriber side does not help, because that profile is
+    incompatible with these publishers and would record nothing at all.
+
+Full robot state:
+
+* ``~/robot_state`` (franka_msgs/FrankaRobotState): Complete robot state, published at
+  the controller update rate (1 kHz).
+
+Convenience topics:
 
 The following topics are published at the rate configured by
-``convenience_publish_rate``. They use **best_effort** QoS to avoid blocking the
-real-time publish thread.
-
-.. important::
-
-    Subscribers must use **best_effort** reliability to receive these topics.
-    The default QoS (reliable) is **not compatible** and will result in no messages
-    being received. This applies to custom nodes, ``ros2 topic echo``
-    (use ``--qos-reliability best_effort``), and rviz2 (set Reliability Policy
-    to "Best Effort" in display properties).
+``convenience_publish_rate``.
 
 * ``~/current_pose`` (geometry_msgs/PoseStamped): Measured end-effector pose in base frame.
 * ``~/last_desired_pose`` (geometry_msgs/PoseStamped): Last desired end-effector pose.
@@ -82,6 +89,15 @@ real-time publish thread.
 * ``~/external_joint_torques`` (sensor_msgs/JointState): Estimated external joint torques.
 * ``~/external_wrench_in_base_frame`` (geometry_msgs/WrenchStamped): Estimated external wrench in base frame.
 * ``~/external_wrench_in_stiffness_frame`` (geometry_msgs/WrenchStamped): Estimated external wrench in stiffness frame.
+
+.. important::
+
+    Subscribers for these convenience topics must request **best_effort** reliability. The ``rclcpp`` and ``rclpy``
+    defaults are **reliable**, which is **not compatible** with these publishers: the
+    endpoints never match, no messages arrive, and nothing is reported as an error. This
+    applies to custom nodes, to ``ros2 topic echo`` (use
+    ``--qos-reliability best_effort``) and to rviz2 (set Reliability Policy to
+    "Best Effort" in the display properties).
 
 Integration
 -----------

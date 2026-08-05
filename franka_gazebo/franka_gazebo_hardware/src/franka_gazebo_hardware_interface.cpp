@@ -370,7 +370,7 @@ auto FrankaGazeboHardwareInterface::export_state_interfaces()
   state_interfaces.emplace_back(hardware_interface::StateInterface(
       prefix_ + robot_type_, kRobotStateInterfaceName,
       reinterpret_cast<double*>(  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-          &rt_robot_state_buffer_ptr_)));
+          &robot_state_box_ptr_)));
   state_interfaces.emplace_back(hardware_interface::StateInterface(
       prefix_ + robot_type_, kRobotModelInterfaceName,
       reinterpret_cast<double*>(  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -541,7 +541,7 @@ auto FrankaGazeboHardwareInterface::updateRobotState(const rclcpp::Time& time,
   // Refresh the exported cartesian_pose_state interfaces from the synthetic pose.
   cartesian_pose_state_ = robot_state.O_T_EE;
 
-  rt_robot_state_buffer_.writeFromNonRT(robot_state);
+  robot_state_box_.set(robot_state);
 }
 
 auto FrankaGazeboHardwareInterface::estimateExternalWrench(

@@ -20,7 +20,7 @@
   <xacro:arg name="use_fake_hardware" default="false"/>
   <xacro:arg name="fake_sensor_commands" default="false"/>
   <xacro:arg name="is_async" default="false"/>
-  <xacro:arg name="thread_priority" default="50"/>
+  <xacro:arg name="thread_priority" default="98"/>
 
   <!-- One franka_arm_ros2_control hardware component per arm (each with its own robot_ip).
        arm i reads robot_types_list[i], arm_prefixes_list[i], robot_ips_list[i]. -->
