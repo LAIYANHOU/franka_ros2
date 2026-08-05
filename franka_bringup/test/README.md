@@ -69,8 +69,10 @@ All fake-hardware tests inherit from `FakeHardwareTestBase` and share:
   These are tested at load-only level.
 - **`franka_fr3_moveit_config`** cannot be declared as a `test_depend` in
   `franka_bringup/package.xml` because it would create a circular dependency.
-  The launch parsing test for MoveIt files works in full-workspace builds (CI)
-  but is skipped in isolated `--packages-up-to franka_bringup` builds.
+  The launch parsing test for MoveIt files works in full-workspace builds (CI),
+  where a missing package is a failure. For isolated
+  `--packages-up-to franka_bringup` builds, export
+  `FRANKA_LAUNCH_TEST_ALLOW_MISSING_PACKAGES=1` to turn those cases into skips.
 
 ## Running Tests
 

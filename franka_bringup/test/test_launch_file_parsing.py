@@ -44,19 +44,44 @@ LAUNCH_FILES = [
 ]
 
 
+# This test intentionally spans launch files owned by other packages (e.g. the MoveIt
+# configs). Those cannot be declared as franka_bringup test dependencies without a circular
+# dependency, so an isolated (--packages-up-to) build legitimately lacks them. Setting this
+# turns a missing package into a skip; without it, a missing package fails, so a
+# full-workspace build cannot report green while quietly exercising nothing.
+ALLOW_MISSING_PACKAGES = 'FRANKA_LAUNCH_TEST_ALLOW_MISSING_PACKAGES'
+
+
+def missing_packages_are_tolerated() -> bool:
+    """Report whether this build is allowed to omit packages named in LAUNCH_FILES."""
+    return os.environ.get(ALLOW_MISSING_PACKAGES, '').strip().lower() in ('1', 'true', 'yes')
+
+
+def find_missing_packages() -> list[str]:
+    """Return the packages named in LAUNCH_FILES that this workspace cannot resolve."""
+    missing = []
+    for package_name in dict.fromkeys(package_name for package_name, _ in LAUNCH_FILES):
+        try:
+            get_package_share_directory(package_name)
+        except PackageNotFoundError:
+            missing.append(package_name)
+    return missing
+
+
 def load_launch_description(
     package_name: str, launch_file_name: str
 ) -> tuple[str, LaunchDescription]:
     """Load a launch file as a Python module and return its LaunchDescription."""
-    # This test intentionally spans launch files owned by other packages (e.g.
-    # the MoveIt configs). Those cannot be declared as franka_bringup test
-    # dependencies without a circular dependency, so in isolated
-    # (--packages-up-to) builds they may be absent. Skip rather than fail there;
-    # full-workspace CI still exercises every launch file.
     try:
         package_directory = get_package_share_directory(package_name)
     except PackageNotFoundError:
-        pytest.skip(f'Package {package_name} not available in this build')
+        if not missing_packages_are_tolerated():
+            pytest.fail(
+                f'Package {package_name} is not available, so this launch file was never '
+                f'parsed. A full-workspace build is expected to exercise every entry in '
+                f'LAUNCH_FILES; set {ALLOW_MISSING_PACKAGES}=1 for isolated builds.'
+            )
+        pytest.skip(f'Package {package_name} not available in this isolated build')
     launch_file = os.path.join(package_directory, 'launch', launch_file_name)
 
     assert os.path.exists(launch_file), f'Launch file not found: {launch_file}'
@@ -77,6 +102,20 @@ def load_launch_description(
     )
 
     return launch_file, module.generate_launch_description()
+
+
+def test_every_launch_package_is_available() -> None:
+    """Verify the workspace can exercise every entry, so none of them skips unnoticed."""
+    missing = find_missing_packages()
+
+    if missing and missing_packages_are_tolerated():
+        pytest.skip(f'Isolated build without {", ".join(missing)}')
+
+    assert not missing, (
+        f'{len(missing)} of the packages named in LAUNCH_FILES are not built, so their launch '
+        f'files are never parsed: {", ".join(missing)}. Set {ALLOW_MISSING_PACKAGES}=1 if this '
+        f'is an isolated build.'
+    )
 
 
 @pytest.mark.parametrize(

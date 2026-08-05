@@ -173,7 +173,7 @@ pipeline {
           . install/setup.sh
           colcon test \
             --base-paths src \
-            --packages-select-regex '^franka_(?!bringup$|gripper$)' \
+            --packages-select-regex '^franka_(?!gripper$)' \
             --event-handlers console_direct+ \
             --ctest-args --exclude-regex test_hardware
           colcon test-result --verbose

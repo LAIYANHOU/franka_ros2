@@ -8,7 +8,9 @@ UNRELEASED
   controller-lifecycle test, a Joy→cmd_vel teleop test, a launch-file parsing test,
   a MoveIt planning smoke test with a gripper name-consistency check, and a single
   GTest that loads every example controller. ``moveit.launch.py`` gains a
-  ``use_rviz`` argument so the smoke test can run headless.
+  ``use_rviz`` argument so the smoke test can run headless. The CI test stage
+  now selects ``franka_bringup``, which the package filter had excluded, so its
+  tests are executed rather than only built.
 * fix: align MoveIt gripper controller name with actual gripper node name.
   ``fr3_controllers.yaml`` and ``moveit.launch.py`` referenced ``fr3_gripper``
   but the node is launched as ``franka_gripper``, breaking gripper action commands
