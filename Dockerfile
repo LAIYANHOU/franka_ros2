@@ -44,6 +44,7 @@ USER $USERNAME
 RUN sudo apt-get update \
     && sudo apt-get install -y --no-install-recommends \
         ros-humble-ros-gz \
+        ros-humble-gz-ros2-control \
         ros-humble-sdformat-urdf \
         ros-humble-joint-state-publisher-gui \
         ros-humble-ros2controlcli \

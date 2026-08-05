@@ -386,8 +386,8 @@ class ControllerServiceClient:
             f'Waiting for controller {controller_name} to reach state {target_states}...'
         )
 
-        start_time = time.time()
-        while time.time() - start_time < timeout_sec:
+        start_time = time.monotonic()
+        while time.monotonic() - start_time < timeout_sec:
             controllers = self.list_controllers()
 
             controller_found = False
