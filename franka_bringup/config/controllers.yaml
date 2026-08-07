@@ -141,31 +141,32 @@
       linear:
         x:
           has_velocity_limits    : true
-          max_velocity           : 0.1  # m/s
-          min_velocity           : -0.1 # m/s
+          max_velocity           : 0.35   # m/s    translational limit = 2-norm of (vx,vy,vz) <= RCU 1.75 (shared budget); 0.35/axis conservative
+          min_velocity           : -0.35  # m/s
           has_acceleration_limits: true
-          max_acceleration       : 0.1  # m/s^2
-          min_acceleration       : -0.1 # m/s^2
+          max_acceleration       : 0.4    # m/s^2   translational accel = 2-norm <= RCU 2.0; 0.4 = 20%
+          min_acceleration       : -0.4   # m/s^2
           has_jerk_limits        : false
           max_jerk               : 10.0  # m/s^3
           min_jerk               : -10.0  # m/s^3
         y:
           has_velocity_limits    : true
-          max_velocity           : 0.1  # m/s
-          min_velocity           : -0.1 # m/s
+          max_velocity           : 0.35   # m/s    translational limit = 2-norm of (vx,vy,vz) <= RCU 1.75 (shared budget); 0.35/axis conservative
+          min_velocity           : -0.35  # m/s
           has_acceleration_limits: true
-          max_acceleration       : 0.1  # m/s^2
-          min_acceleration       : -0.1 # m/s^2
+          max_acceleration       : 0.4    # m/s^2   translational accel = 2-norm <= RCU 2.0; 0.4 = 20%
+          min_acceleration       : -0.4   # m/s^2
           has_jerk_limits        : false
           max_jerk               : 10.0  # m/s^3
           min_jerk               : -10.0  # m/s^3
       angular:
         z:
           has_velocity_limits    : true
-          max_velocity           : 0.1  # rad/s
+          max_velocity           : 0.5     # rad/s   rotational limit = 2-norm of (wx,wy,wz) <= RCU 0.525 (= |wz| here); 0.5 keeps a small margin
+          min_velocity           : -0.5    # rad/s
           has_acceleration_limits: true
-          max_acceleration       : 0.1  # rad/s^2
-          min_acceleration       : -0.1  # rad/s^2
+          max_acceleration       : 0.3    # rad/s^2 rotational accel = 2-norm <= RCU 0.6; 0.3 = 50% (0.45 trips reflex; 0.3 tested-safe)
+          min_acceleration       : -0.3   # rad/s^2
           has_jerk_limits        : false
           max_jerk               : 10.0  # rad/s^3
           min_jerk               : -10.0  # rad/s^3
