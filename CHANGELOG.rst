@@ -5,7 +5,12 @@ Changelog for package franka_ros2
 UNRELEASED
 ----------
 
-
+* fix: tune mobile teleop velocity/acceleration limits to stay within the RCU
+  2-norm bounds. Raise swerve translational limits to 0.35 m/s / 0.4 m/s^2 and
+  rotational to 0.5 rad/s / 0.3 rad/s^2 in ``controllers.yaml``, rescale the xbox
+  normal/turbo axes in ``xbox.config.yaml`` to match ``max_velocity``, and reduce
+  the joystick deadzone (0.1) with a higher autorepeat rate (50 Hz) in
+  ``mobile_teleop.launch.py`` for smoother teleop.
 * fix: **BREAKING CHANGE** thread-safe access to robot state interface (changed from RealtimeBuffer to RealtimeThreadSafeBox).
   This fixes possible race conditions that could happen when running the broadcaster and the 
   cartesian impedance example controller (e.g. via the `franka_semantic_components::FrankaRobotModel`) with async=true. 
