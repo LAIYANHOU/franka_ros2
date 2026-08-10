@@ -1,6 +1,13 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+UNRELEASED
+----------
+
+* fix: franka_hardware tests now run in isolated ROS domains to avoid possible collisions.
+* fix: fixed franka_hardware stop motion test to check for stopping_joint_positions matching the last 
+        commanded target instead of zero positions. 
+
 v2.6.0 (2026-08-10)
 -------------------
 Requires libfranka >= 0.20.4 and franka_description >= 2.8.1 requires ROS 2 Humble
