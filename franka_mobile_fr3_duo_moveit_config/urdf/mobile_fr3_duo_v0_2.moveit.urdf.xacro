@@ -38,7 +38,8 @@
     <xacro:arg name="special_connection" default=""/>
     <xacro:arg name="xyz_ee" default="0 0 0"/>
     <xacro:arg name="rpy_ee" default="0 0 ${-pi/4}"/>
-    <xacro:arg name="tcp_xyz" default="0 0 0.1034"/>
+    <!-- Empty takes the offset the mounted end effector declares for itself. -->
+    <xacro:arg name="tcp_xyz" default=""/>
     <xacro:arg name="tcp_rpy" default="0 0 0"/>
     <xacro:arg name="safety_distance" default="0.03"/>
     <xacro:arg name="with_sc" default="false"/>

@@ -11,6 +11,12 @@ UNRELEASED
   normal/turbo axes in ``xbox.config.yaml`` to match ``max_velocity``, and reduce
   the joystick deadzone (0.1) with a higher autorepeat rate (50 Hz) in
   ``mobile_teleop.launch.py`` for smoother teleop.
+
+* fix: the description extension entry points and the mobile fr3 duo moveit config no longer
+  hardcode the franka hand's tcp offset, so a cobot pump mounted on them is placed at its own
+  ``0 0 0.105`` instead of the hand's ``0 0 0.1034``. Requires franka_description with the resolved
+  ``tcp_xyz`` default. MIGRATION: pass ``tcp_xyz`` explicitly to keep the previous value; the franka
+  hand is unaffected.
 * fix: **BREAKING CHANGE** thread-safe access to robot state interface (changed from RealtimeBuffer to RealtimeThreadSafeBox).
   This fixes possible race conditions that could happen when running the broadcaster and the 
   cartesian impedance example controller (e.g. via the `franka_semantic_components::FrankaRobotModel`) with async=true. 
