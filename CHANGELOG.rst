@@ -1,8 +1,9 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-UNRELEASED
-----------
+v2.6.0 (2026-08-10)
+-------------------
+Requires libfranka >= 0.20.4 and franka_description >= 2.8.1 requires ROS 2 Humble
 
 * fix: tune mobile teleop velocity/acceleration limits to stay within the RCU
   2-norm bounds. Raise swerve translational limits to 0.35 m/s / 0.4 m/s^2 and
@@ -25,7 +26,7 @@ UNRELEASED
   (``rclcpp_components`` in franka_hardware; ``rclcpp_lifecycle``, ``urdf``,
   ``eigen`` in franka_semantic_components). Fixes rosdep-based fresh-environment
   builds. (community contribution: GitHub PRs #96, #169)
-* refactor: decouple the simulation backend (real/mock/gazebo) from the
+* refactor: **BREAKING CHANGE** decouple the simulation backend (real/mock/gazebo) from the
   franka_hardware ros2_control macros (``franka_arm`` and ``tmrv0_2``). The hardware
   ``<plugin>`` block and the gz_ros2_control ``<gazebo>`` system element are now
   injected by the owning package (``franka_bringup`` for real/mock,
