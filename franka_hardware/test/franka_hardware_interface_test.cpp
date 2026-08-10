@@ -567,7 +567,7 @@ TEST_F(
                              franka_msgs::srv::SetJointStiffness::Response>(
       expect_call_set_joint_stiffness, "service_server/set_joint_stiffness", response);
 
-  ASSERT_TRUE(response.success);
+  ASSERT_TRUE(response.success) << "service error: " << response.error;
 }
 
 TEST_F(
@@ -582,7 +582,7 @@ TEST_F(
                              franka_msgs::srv::SetCartesianStiffness::Response>(
       expect_call_set_cartesian_stiffness, "service_server/set_cartesian_stiffness", response);
 
-  ASSERT_TRUE(response.success);
+  ASSERT_TRUE(response.success) << "service error: " << response.error;
 }
 
 TEST_F(
@@ -596,7 +596,7 @@ TEST_F(
                              franka_msgs::srv::SetLoad::Response>(
       expect_call_set_load, "service_server/set_load", response);
 
-  ASSERT_TRUE(response.success);
+  ASSERT_TRUE(response.success) << "service error: " << response.error;
 }
 
 TEST_F(
@@ -610,7 +610,7 @@ TEST_F(
                              franka_msgs::srv::SetTCPFrame::Response>(
       expect_call_set_tcp_frame, "service_server/set_tcp_frame", response);
 
-  ASSERT_TRUE(response.success);
+  ASSERT_TRUE(response.success) << "service error: " << response.error;
 }
 
 TEST_F(
@@ -625,7 +625,7 @@ TEST_F(
                              franka_msgs::srv::SetStiffnessFrame::Response>(
       expect_call_set_stiffness_frame, "service_server/set_stiffness_frame", response);
 
-  ASSERT_TRUE(response.success);
+  ASSERT_TRUE(response.success) << "service error: " << response.error;
 }
 
 TEST_F(
@@ -642,7 +642,7 @@ TEST_F(
       expect_call_set_force_torque_collision_behavior,
       "service_server/set_force_torque_collision_behavior", response);
 
-  ASSERT_TRUE(response.success);
+  ASSERT_TRUE(response.success) << "service error: " << response.error;
 }
 
 TEST_F(
@@ -658,7 +658,7 @@ TEST_F(
       expect_call_set_full_collision_behavior, "service_server/set_full_collision_behavior",
       response);
 
-  ASSERT_TRUE(response.success);
+  ASSERT_TRUE(response.success) << "service error: " << response.error;
 }
 
 TEST_F(FrankaHardwareInterfaceTest, set_joint_stiffness_throws_error) {
@@ -1078,7 +1078,11 @@ TEST_F(FrankaHardwareInterfaceTest,
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   rclcpp::init(0, nullptr);
-  return RUN_ALL_TESTS();
+  const auto ret = RUN_ALL_TESTS();
+  if (rclcpp::ok()) {
+    rclcpp::shutdown();
+  }
+  return ret;
 }
 
 INSTANTIATE_TEST_SUITE_P(FrankaHardwareTests,

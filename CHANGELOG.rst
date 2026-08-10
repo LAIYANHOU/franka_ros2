@@ -5,6 +5,9 @@ Changelog for package franka_ros2
 UNRELEASED
 ----------
 
+* fix: franka_hardware tests now run in isolated ROS domains to avoid possible collisions.
+* fix: fixed franka_hardware stop motion test to check for stopping_joint_positions matching the last 
+        commanded target instead of zero positions. 
 * fix: tune mobile teleop velocity/acceleration limits to stay within the RCU
   2-norm bounds. Raise swerve translational limits to 0.35 m/s / 0.4 m/s^2 and
   rotational to 0.5 rad/s / 0.3 rad/s^2 in ``controllers.yaml``, rescale the xbox
