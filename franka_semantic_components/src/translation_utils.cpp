@@ -180,6 +180,17 @@ auto toAccel(const std::array<double, 6>& input_accel) -> geometry_msgs::msg::Ac
 }
 
 /**
+ * @param input_vector The 3D vector which should be translated
+ * @return geometry_msgs::msg::Vector3 The translated vector
+ */
+auto toVector3(const std::array<double, 3>& input_vector) -> geometry_msgs::msg::Vector3 {
+  return geometry_msgs::build<geometry_msgs::msg::Vector3>()
+      .x(input_vector[0])
+      .y(input_vector[1])
+      .z(input_vector[2]);
+}
+
+/**
  * @param input_pose The pose which should be translated
  * @return geometry_msgs::msg::Pose The translated pose
  */
@@ -329,6 +340,12 @@ auto updateTimeStamps(const builtin_interfaces::msg::Time& time_stamps,
   robot_state.inertia_ee.header.stamp = time_stamps;
   robot_state.inertia_load.header.stamp = time_stamps;
   robot_state.inertia_total.header.stamp = time_stamps;
+
+  // Joint-mounted accelerometers
+  for (size_t i = 0; i < robot_state.accelerometer_top.size(); ++i) {
+    robot_state.accelerometer_top[i].header.stamp = time_stamps;
+    robot_state.accelerometer_bottom[i].header.stamp = time_stamps;
+  }
 }
 
 }  // namespace franka_semantic_components::translation

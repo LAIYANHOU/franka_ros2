@@ -15,9 +15,9 @@
 #include <pthread.h>
 #include <sched.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <cstring>
-#include <algorithm>
 #include <memory>
 #include <string>
 
@@ -130,21 +130,23 @@ controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_configure(
   current_pose_stamped_publisher_ = this_node->create_publisher<geometry_msgs::msg::PoseStamped>(
       kCurrentPoseTopic, convenience_qos);
   last_desired_pose_stamped_publisher_ =
-      this_node->create_publisher<geometry_msgs::msg::PoseStamped>(kLastDesiredPoseTopic, convenience_qos);
+      this_node->create_publisher<geometry_msgs::msg::PoseStamped>(kLastDesiredPoseTopic,
+                                                                   convenience_qos);
   desired_end_effector_twist_stamped_publisher_ =
-      this_node->create_publisher<geometry_msgs::msg::TwistStamped>(kDesiredEETwist, convenience_qos);
-  measured_joint_states_publisher_ =
-      this_node->create_publisher<sensor_msgs::msg::JointState>(kMeasuredJointStates, convenience_qos);
+      this_node->create_publisher<geometry_msgs::msg::TwistStamped>(kDesiredEETwist,
+                                                                    convenience_qos);
+  measured_joint_states_publisher_ = this_node->create_publisher<sensor_msgs::msg::JointState>(
+      kMeasuredJointStates, convenience_qos);
   external_wrench_in_stiffness_frame_publisher_ =
       this_node->create_publisher<geometry_msgs::msg::WrenchStamped>(
           kExternalWrenchInStiffnessFrame, convenience_qos);
   external_wrench_in_base_frame_publisher_ =
       this_node->create_publisher<geometry_msgs::msg::WrenchStamped>(kExternalWrenchInBaseFrame,
                                                                      convenience_qos);
-  external_joint_torques_publisher_ =
-      this_node->create_publisher<sensor_msgs::msg::JointState>(kExternalJointTorques, convenience_qos);
-  desired_joint_states_publisher_ =
-      this_node->create_publisher<sensor_msgs::msg::JointState>(kDesiredJointStates, convenience_qos);
+  external_joint_torques_publisher_ = this_node->create_publisher<sensor_msgs::msg::JointState>(
+      kExternalJointTorques, convenience_qos);
+  desired_joint_states_publisher_ = this_node->create_publisher<sensor_msgs::msg::JointState>(
+      kDesiredJointStates, convenience_qos);
 
   try {
     franka_state_publisher_ = this_node->create_publisher<franka_msgs::msg::FrankaRobotState>(
@@ -200,9 +202,10 @@ controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_configure(
 controller_interface::CallbackReturn FrankaRobotStateBroadcaster::on_activate(
     const rclcpp_lifecycle::State& /*previous_state*/) {
   if (!franka_robot_state_->assign_loaned_state_interfaces(state_interfaces_)) {
-    RCLCPP_ERROR(get_node()->get_logger(),
-                 "Could not claim or resolve the robot state interface. Check that 'robot_state' is "
-                 "listed among this controller's state interfaces and that the hardware exports it.");
+    RCLCPP_ERROR(
+        get_node()->get_logger(),
+        "Could not claim or resolve the robot state interface. Check that 'robot_state' is "
+        "listed among this controller's state interfaces and that the hardware exports it.");
     return CallbackReturn::ERROR;
   }
   startPublishThread();

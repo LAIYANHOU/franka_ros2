@@ -186,3 +186,58 @@ TEST_F(FrankaRobotStateTest, givenInitializedRobotStateMsg_thenCorrectlySizedDyn
   ASSERT_EQ(franka_robot_state_msg.tau_ext_hat_filtered.velocity.size(), expected_size);
   ASSERT_EQ(franka_robot_state_msg.tau_ext_hat_filtered.effort.size(), expected_size);
 }
+
+TEST_F(FrankaRobotStateTest,
+       givenAccelerometerRobotState_whenMessageReturned_thenOrderedValuesFramesAndStamps) {
+  constexpr size_t kSensorCount = 6;
+  constexpr size_t kAxisCount = 3;
+  std::array<std::array<double, kAxisCount>, kSensorCount> top_readings;
+  std::array<std::array<double, kAxisCount>, kSensorCount> bottom_readings;
+  for (size_t sensor = 0; sensor < kSensorCount; ++sensor) {
+    for (size_t axis = 0; axis < kAxisCount; ++axis) {
+      // Exact binary fractions keep the values distinct per sensor and axis while
+      // staying safe for exact-equality assertions.
+      top_readings[sensor][axis] = kAxisCount * sensor + axis + 0.125;
+      bottom_readings[sensor][axis] = -(kAxisCount * sensor + axis + 0.25);
+    }
+  }
+  robot_state.accelerometer_top = top_readings;
+  robot_state.accelerometer_bottom = bottom_readings;
+  robot_state_box.set(robot_state);
+
+  builtin_interfaces::msg::Time requested_stamp;
+  requested_stamp.sec = 123;
+  requested_stamp.nanosec = 456789;
+  franka_robot_state_msg.header.stamp = requested_stamp;
+
+  ASSERT_TRUE(franka_state_friend->get_values_as_message(franka_robot_state_msg));
+
+  ASSERT_EQ(franka_robot_state_msg.accelerometer_top.size(), kSensorCount);
+  ASSERT_EQ(franka_robot_state_msg.accelerometer_bottom.size(), kSensorCount);
+  for (size_t sensor = 0; sensor < kSensorCount; ++sensor) {
+    const auto expected_frame = robot_name + "_link" + std::to_string(sensor) + "_accelerometer_";
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_top[sensor].header.frame_id,
+              expected_frame + "top");
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_bottom[sensor].header.frame_id,
+              expected_frame + "bottom");
+
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_top[sensor].header.stamp.sec,
+              requested_stamp.sec);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_top[sensor].header.stamp.nanosec,
+              requested_stamp.nanosec);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_bottom[sensor].header.stamp.sec,
+              requested_stamp.sec);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_bottom[sensor].header.stamp.nanosec,
+              requested_stamp.nanosec);
+
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_top[sensor].vector.x, top_readings[sensor][0]);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_top[sensor].vector.y, top_readings[sensor][1]);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_top[sensor].vector.z, top_readings[sensor][2]);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_bottom[sensor].vector.x,
+              bottom_readings[sensor][0]);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_bottom[sensor].vector.y,
+              bottom_readings[sensor][1]);
+    ASSERT_EQ(franka_robot_state_msg.accelerometer_bottom[sensor].vector.z,
+              bottom_readings[sensor][2]);
+  }
+}

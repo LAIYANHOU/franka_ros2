@@ -69,8 +69,7 @@ class FrankaRobotState
   auto get_robot_state() -> franka::RobotState*;
 
  private:
-  using Base =
-      semantic_components::SemanticComponentInterface<franka_msgs::msg::FrankaRobotState>;
+  using Base = semantic_components::SemanticComponentInterface<franka_msgs::msg::FrankaRobotState>;
 
   /**
    * Resolves and caches the robot state box from the claimed state interface.

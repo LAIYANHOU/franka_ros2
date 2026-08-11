@@ -29,6 +29,7 @@ namespace {
 constexpr size_t kBaseLinkIndex = 0;
 constexpr size_t kFlangeLinkIndex = 8;
 constexpr size_t kLoadLinkIndex = 8;
+constexpr size_t kAccelerometerCount = 6;
 const std::string kTCPFrameName = "_hand_tcp";
 
 // franka::RobotMode and FrankaRobotState.robot_mode are intentionally isomorphic.
@@ -213,6 +214,26 @@ auto FrankaRobotState::initialize_robot_state_msg(franka_msgs::msg::FrankaRobotS
   message.tau_ext_hat_filtered.position.resize(joint_names.size(), 0.0);
   message.tau_ext_hat_filtered.velocity.resize(joint_names.size(), 0.0);
   message.tau_ext_hat_filtered.effort.resize(joint_names.size(), 0.0);
+
+  // libfranka's accelerometer index i belongs to joint i+1; a joint's sensors are mounted
+  // on its parent link and named "<parent link>_accelerometer_<side>" in the URDF.
+  for (size_t i = 0; i < kAccelerometerCount; ++i) {
+    const auto joint_name = robot_name_ + "_joint" + std::to_string(i + 1);
+    const auto joint_it = model_->joints_.find(joint_name);
+    if (joint_it == model_->joints_.end()) {
+      throw std::runtime_error("Joint '" + joint_name + "' not found in URDF.");
+    }
+    const auto top_frame = joint_it->second->parent_link_name + "_accelerometer_top";
+    const auto bottom_frame = joint_it->second->parent_link_name + "_accelerometer_bottom";
+    if (model_->links_.find(top_frame) == model_->links_.end()) {
+      throw std::runtime_error("Accelerometer frame '" + top_frame + "' not found in URDF.");
+    }
+    if (model_->links_.find(bottom_frame) == model_->links_.end()) {
+      throw std::runtime_error("Accelerometer frame '" + bottom_frame + "' not found in URDF.");
+    }
+    message.accelerometer_top[i].header.frame_id = top_frame;
+    message.accelerometer_bottom[i].header.frame_id = bottom_frame;
+  }
 }
 
 auto FrankaRobotState::assign_loaned_state_interfaces(
@@ -269,8 +290,8 @@ auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState&
     return false;
   }
 
-  // Robot state consumers are assuming this is reliable. 
-  // Don't drop any robot state the hardware has written to the box. 
+  // Robot state consumers are assuming this is reliable.
+  // Don't drop any robot state the hardware has written to the box.
   // Warning: this blocks until the hardware releases the box!
   robot_state_ = robot_state_box_->get();
   cached_robot_state_valid_ = true;
@@ -286,17 +307,12 @@ auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState&
   // The joint states
   const auto n_joints = message.measured_joint_state.position.size();
   std::copy_n(robot_state_.q.cbegin(), n_joints, message.measured_joint_state.position.begin());
-  std::copy_n(robot_state_.dq.cbegin(), n_joints,
-              message.measured_joint_state.velocity.begin());
-  std::copy_n(robot_state_.tau_J.cbegin(), n_joints,
-              message.measured_joint_state.effort.begin());
+  std::copy_n(robot_state_.dq.cbegin(), n_joints, message.measured_joint_state.velocity.begin());
+  std::copy_n(robot_state_.tau_J.cbegin(), n_joints, message.measured_joint_state.effort.begin());
 
-  std::copy_n(robot_state_.q_d.cbegin(), n_joints,
-              message.desired_joint_state.position.begin());
-  std::copy_n(robot_state_.dq_d.cbegin(), n_joints,
-              message.desired_joint_state.velocity.begin());
-  std::copy_n(robot_state_.tau_J_d.cbegin(), n_joints,
-              message.desired_joint_state.effort.begin());
+  std::copy_n(robot_state_.q_d.cbegin(), n_joints, message.desired_joint_state.position.begin());
+  std::copy_n(robot_state_.dq_d.cbegin(), n_joints, message.desired_joint_state.velocity.begin());
+  std::copy_n(robot_state_.tau_J_d.cbegin(), n_joints, message.desired_joint_state.effort.begin());
 
   std::copy_n(robot_state_.theta.cbegin(), n_joints,
               message.measured_joint_motor_state.position.begin());
@@ -310,9 +326,16 @@ auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState&
   message.dtau_j = robot_state_.dtau_J;
 
   // Output for the elbow
-  message.elbow = translation::toElbow(robot_state_.elbow, robot_state_.elbow_d,
-                                       robot_state_.elbow_c, robot_state_.delbow_c,
-                                       robot_state_.ddelbow_c);
+  message.elbow =
+      translation::toElbow(robot_state_.elbow, robot_state_.elbow_d, robot_state_.elbow_c,
+                           robot_state_.delbow_c, robot_state_.ddelbow_c);
+
+  // Joint-mounted accelerometer data
+  for (size_t i = 0; i < message.accelerometer_top.size(); ++i) {
+    message.accelerometer_top[i].vector = translation::toVector3(robot_state_.accelerometer_top[i]);
+    message.accelerometer_bottom[i].vector =
+        translation::toVector3(robot_state_.accelerometer_bottom[i]);
+  }
 
   // Active wrenches on the stiffness frame
   message.k_f_ext_hat_k.wrench = translation::toWrench(robot_state_.K_F_ext_hat_K);
@@ -331,12 +354,12 @@ auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState&
   message.o_ddp_ee_c.accel = translation::toAccel(robot_state_.O_ddP_EE_c);
 
   // The inertias of the robot
-  message.inertia_ee.inertia = translation::toInertia(
-      robot_state_.m_ee, robot_state_.F_x_Cee, robot_state_.I_ee);
-  message.inertia_load.inertia = translation::toInertia(
-      robot_state_.m_load, robot_state_.F_x_Cload, robot_state_.I_load);
-  message.inertia_total.inertia = translation::toInertia(
-      robot_state_.m_total, robot_state_.F_x_Ctotal, robot_state_.I_total);
+  message.inertia_ee.inertia =
+      translation::toInertia(robot_state_.m_ee, robot_state_.F_x_Cee, robot_state_.I_ee);
+  message.inertia_load.inertia =
+      translation::toInertia(robot_state_.m_load, robot_state_.F_x_Cload, robot_state_.I_load);
+  message.inertia_total.inertia =
+      translation::toInertia(robot_state_.m_total, robot_state_.F_x_Ctotal, robot_state_.I_total);
 
   // Errors and more
   message.time = robot_state_.time.toSec();
@@ -345,7 +368,7 @@ auto FrankaRobotState::get_values_as_message(franka_msgs::msg::FrankaRobotState&
   message.last_motion_errors = translation::errorsToMessage(robot_state_.last_motion_errors);
 
   message.robot_mode = static_cast<uint8_t>(robot_state_.robot_mode);
-  
+
   return true;
 }
 
