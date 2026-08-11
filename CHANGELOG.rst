@@ -27,6 +27,17 @@ UNRELEASED
 * fix: default thread priority for franka_hardware interface threads is now 98 (was 50) to 
   ensure RT stability.
 * fix: 
+UNRELEASED
+----------
+
+* fix: recover from a ``franka::ControlException`` without restarting
+  ``ros2_control_node``. ``franka_robot_state_broadcaster`` and
+  ``joint_state_broadcaster`` stay lifecycle-active. One update cycle may
+  publish the pre-fault / frozen sample after ``read()`` latches, then the
+  controller-manager update thread blocks for the approximately two-second
+  braking stop and topic publication pauses; after the block, inactive-state
+  reads resume and publish live reflex state. After clearing the robot error,
+  only the command controller needs reactivation.
 * docu: add an umbrella guide for the relocated description extensions,
   including composition layers, mounting points, prefix rules, and external
   gripper attachment.

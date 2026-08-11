@@ -34,6 +34,7 @@
   <test_depend>ament_cmake_lint_cmake</test_depend>
   <test_depend>ament_cmake_pep257</test_depend>
   <test_depend>ament_cmake_xmllint</test_depend>
+  <test_depend>builtin_interfaces</test_depend>
   <test_depend>launch</test_depend>
   <test_depend>launch_ros</test_depend>
   <test_depend>launch_testing</test_depend>
@@ -41,11 +42,15 @@
   <test_depend>ament_index_python</test_depend>
   <test_depend>python3-yaml</test_depend>
   <test_depend>controller_manager_msgs</test_depend>
+  <test_depend>forward_command_controller</test_depend>
   <test_depend>geometry_msgs</test_depend>
+  <test_depend>hardware_interface_testing</test_depend>
   <test_depend>joy</test_depend>
+  <test_depend>lifecycle_msgs</test_depend>
   <test_depend>rclpy</test_depend>
   <test_depend>rcl_interfaces</test_depend>
   <test_depend>sensor_msgs</test_depend>
+  <test_depend>std_msgs</test_depend>
   <test_depend>teleop_twist_joy</test_depend>
   <test_depend>franka_msgs</test_depend>
   <test_depend>franka_gazebo_bringup</test_depend>

@@ -107,15 +107,21 @@ class FakeHardwareTestBase(unittest.TestCase):
             'joint_state_broadcaster did not become active',
         )
 
-    def wait_for_joint_states(self, *, min_joints=1, timeout_sec=JOINT_STATE_TIMEOUT):
-        """Wait for /joint_states with at least `min_joints` joints published."""
+    def wait_for_joint_states(
+        self,
+        *,
+        min_joints=1,
+        timeout_sec=JOINT_STATE_TIMEOUT,
+        topic='/joint_states',
+    ):
+        """Wait for a JointState topic with at least `min_joints` joints published."""
         received = []
 
         def callback(msg):
             received.append(msg)
 
         sub = self.node.create_subscription(
-            JointState, '/joint_states', callback, qos_profile_sensor_data,
+            JointState, topic, callback, qos_profile_sensor_data,
         )
 
         try:
@@ -128,7 +134,7 @@ class FakeHardwareTestBase(unittest.TestCase):
             self.node.destroy_subscription(sub)
 
         self.fail(
-            f'Did not receive /joint_states with >= {min_joints} joints '
+            f'Did not receive {topic} with >= {min_joints} joints '
             f'within {timeout_sec}s'
         )
 
