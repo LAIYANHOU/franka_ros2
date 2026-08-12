@@ -13,7 +13,7 @@
 
   <depend>rclpy</depend>
   <depend>franka_spine_msgs</depend>
-  <depend>franka_rest</depend>
+  <depend>franka_rest_api</depend>
   <depend>std_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>

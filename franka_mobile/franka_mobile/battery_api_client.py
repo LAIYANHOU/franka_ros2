@@ -16,7 +16,9 @@
 
 from typing import Any, Tuple
 
-from franka_rest import FrankaRestClient
+from franka_rest_api import FrankaRestClient
+import urllib3
+urllib3.disable_warnings()
 
 
 class BatteryApiClient(FrankaRestClient):

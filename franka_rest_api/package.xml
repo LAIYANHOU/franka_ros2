@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>franka_rest</name>
+  <name>franka_rest_api</name>
   <version>3.4.1</version>
   <description>Shared HTTPS REST client helpers for Franka device APIs (spine, battery, ...)</description>
   <maintainer email="support@franka.de">Franka Robotics GmbH</maintainer>

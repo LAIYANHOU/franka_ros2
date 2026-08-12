@@ -14,6 +14,6 @@
 
 """Shared HTTPS REST client for Franka device APIs."""
 
-from franka_rest.rest_client import FrankaRestClient
+from franka_rest_api.rest_client import FrankaRestClient
 
 __all__ = ['FrankaRestClient']
