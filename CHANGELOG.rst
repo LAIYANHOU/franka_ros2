@@ -1,13 +1,13 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-UNRELEASED
-----------
+v3.5.1 (2026-08-14)
+-------------------
 
 * fix: accelerometers data is float in libfranka 0.20.5
 
 v3.5.0 (2026-08-14)
-----------
+-------------------
 
 * feat: add TMR battery ROS 2 support in ``franka_mobile`` (``sensor_msgs/BatteryState``
   topic at 1 Hz and ``std_srvs/Trigger`` services for wireless charging), with an
