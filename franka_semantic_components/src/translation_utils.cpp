@@ -180,17 +180,6 @@ auto toAccel(const std::array<double, 6>& input_accel) -> geometry_msgs::msg::Ac
 }
 
 /**
- * @param input_vector The 3D vector which should be translated
- * @return geometry_msgs::msg::Vector3 The translated vector
- */
-auto toVector3(const std::array<double, 3>& input_vector) -> geometry_msgs::msg::Vector3 {
-  return geometry_msgs::build<geometry_msgs::msg::Vector3>()
-      .x(input_vector[0])
-      .y(input_vector[1])
-      .z(input_vector[2]);
-}
-
-/**
  * @param input_pose The pose which should be translated
  * @return geometry_msgs::msg::Pose The translated pose
  */

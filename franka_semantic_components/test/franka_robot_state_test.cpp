@@ -191,8 +191,8 @@ TEST_F(FrankaRobotStateTest,
        givenAccelerometerRobotState_whenMessageReturned_thenOrderedValuesFramesAndStamps) {
   constexpr size_t kSensorCount = 6;
   constexpr size_t kAxisCount = 3;
-  std::array<std::array<double, kAxisCount>, kSensorCount> top_readings;
-  std::array<std::array<double, kAxisCount>, kSensorCount> bottom_readings;
+  std::array<std::array<float, kAxisCount>, kSensorCount> top_readings;
+  std::array<std::array<float, kAxisCount>, kSensorCount> bottom_readings;
   for (size_t sensor = 0; sensor < kSensorCount; ++sensor) {
     for (size_t axis = 0; axis < kAxisCount; ++axis) {
       // Exact binary fractions keep the values distinct per sensor and axis while
