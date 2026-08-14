@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(franka_rest_api)
+project(franka_desk_api)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)

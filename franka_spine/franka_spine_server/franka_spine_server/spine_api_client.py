@@ -16,7 +16,7 @@
 
 from typing import Any, Tuple
 
-from franka_rest_api._rest_client import _FrankaRestClient
+from franka_desk_api._rest_client import _FrankaRestClient
 
 
 class SpineApiClient(_FrankaRestClient):

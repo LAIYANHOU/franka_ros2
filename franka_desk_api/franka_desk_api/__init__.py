@@ -15,7 +15,7 @@
 """Internal package — not part of the public franka_ros2 API.
 
 Downstream packages (``franka_mobile``, ``franka_spine_server``) may import
-private modules such as ``franka_rest_api._rest_client``. External users must
+private modules such as ``franka_desk_api._rest_client``. External users must
 not depend on this package; it may be replaced or removed without notice.
 """
 
