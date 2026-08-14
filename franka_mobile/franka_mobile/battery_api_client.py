@@ -16,12 +16,10 @@
 
 from typing import Any, Tuple
 
-from franka_rest_api import FrankaRestClient
-import urllib3
-urllib3.disable_warnings()
+from franka_rest_api._rest_client import _FrankaRestClient
 
 
-class BatteryApiClient(FrankaRestClient):
+class BatteryApiClient(_FrankaRestClient):
     """Client for the Franka TMR Battery REST API."""
 
     def __init__(self, robot_ip: str, timeout: float):

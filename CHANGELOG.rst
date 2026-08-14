@@ -6,8 +6,8 @@ UNRELEASED
 ----------
 
 * feat: add TMR battery ROS 2 support in ``franka_mobile`` (``sensor_msgs/BatteryState``
-  topic at 1 Hz and ``std_srvs/Trigger`` services for wireless charging) plus shared
-  ``franka_rest_api`` HTTPS client used by the spine and battery REST APIs. (PRCUN-6960)
+  topic at 1 Hz and ``std_srvs/Trigger`` services for wireless charging), with an
+  internal shared HTTPS helper used by the spine and battery clients. (PRCUN-6960)
 * fix: franka_hardware tests now run in isolated ROS domains to avoid possible collisions.
 * fix: fixed franka_hardware stop motion test to check for stopping_joint_positions matching the last 
         commanded target instead of zero positions. 

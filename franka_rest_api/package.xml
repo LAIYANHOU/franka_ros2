@@ -3,7 +3,11 @@
 <package format="3">
   <name>franka_rest_api</name>
   <version>3.4.1</version>
-  <description>Shared HTTPS REST client helpers for Franka device APIs (spine, battery, ...)</description>
+  <description>
+    INTERNAL: shared HTTPS helper used by franka_mobile and franka_spine_server.
+    Not a public ROS 2 API. Do not depend on this package from external code; it
+    may be replaced or removed without notice.
+  </description>
   <maintainer email="support@franka.de">Franka Robotics GmbH</maintainer>
   <license>Apache 2.0</license>
 

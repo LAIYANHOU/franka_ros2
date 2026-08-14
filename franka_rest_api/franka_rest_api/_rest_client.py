@@ -12,18 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Shared HTTPS REST client for Franka device APIs."""
+"""Internal HTTPS REST client for Franka device APIs.
+
+This module is an implementation detail of franka_ros2 and is not part of the
+public API. It may change or be removed without notice.
+"""
 
 from typing import Any, Dict, Optional, Tuple
 
 import requests
+import urllib3
+
+# Robot Desk certificates are typically not in the system trust store; callers
+# connect over a trusted robot LAN. Suppress only the matching urllib3 warning.
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class FrankaRestClient:
+class _FrankaRestClient:
     """Minimal HTTPS JSON client used by Franka device REST APIs.
 
     Builds URLs as ``https://{host}/{api_path}/{endpoint}`` with certificate
-    verification disabled (same behaviour as the on-robot nginx endpoints).
+    verification disabled (same behaviour as Desk when opened by IP).
     """
 
     def __init__(self, host: str, api_path: str, timeout: float):

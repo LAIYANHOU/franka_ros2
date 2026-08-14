@@ -16,10 +16,10 @@
 
 from typing import Any, Tuple
 
-from franka_rest_api import FrankaRestClient
+from franka_rest_api._rest_client import _FrankaRestClient
 
 
-class SpineApiClient(FrankaRestClient):
+class SpineApiClient(_FrankaRestClient):
     """Client for the Franka Spine REST API."""
 
     def __init__(self, spine_ip: str, timeout: float):

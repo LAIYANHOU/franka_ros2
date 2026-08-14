@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Shared HTTPS REST client for Franka device APIs."""
+"""Internal package — not part of the public franka_ros2 API.
 
-from franka_rest_api.rest_client import FrankaRestClient
+Downstream packages (``franka_mobile``, ``franka_spine_server``) may import
+private modules such as ``franka_rest_api._rest_client``. External users must
+not depend on this package; it may be replaced or removed without notice.
+"""
 
-__all__ = ['FrankaRestClient']
+__all__: list[str] = []
