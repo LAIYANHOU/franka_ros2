@@ -2,7 +2,7 @@ Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-UNRELEASED
+v3.5.0 (2026-08-14)
 ----------
 
 * feat: add TMR battery ROS 2 support in ``franka_mobile`` (``sensor_msgs/BatteryState``
@@ -17,7 +17,6 @@ UNRELEASED
   normal/turbo axes in ``xbox.config.yaml`` to match ``max_velocity``, and reduce
   the joystick deadzone (0.1) with a higher autorepeat rate (50 Hz) in
   ``mobile_teleop.launch.py`` for smoother teleop.
-
 * fix: the description extension entry points and the mobile fr3 duo moveit config no longer
   hardcode the franka hand's tcp offset, so a cobot pump mounted on them is placed at its own
   ``0 0 0.105`` instead of the hand's ``0 0 0.1034``. Requires franka_description with the resolved
