@@ -5,6 +5,9 @@ Changelog for package franka_ros2
 UNRELEASED
 ----------
 
+* feat: add TMR battery ROS 2 support in ``franka_mobile`` (``sensor_msgs/BatteryState``
+  topic at 1 Hz and ``std_srvs/Trigger`` services for wireless charging), with an
+  internal ``franka_desk_api`` HTTPS helper used by the spine and battery clients.
 * fix: franka_hardware tests now run in isolated ROS domains to avoid possible collisions.
 * fix: fixed franka_hardware stop motion test to check for stopping_joint_positions matching the last 
         commanded target instead of zero positions. 
@@ -26,10 +29,6 @@ UNRELEASED
   Users of the `franka_semantic_components::FrankaRobotState` should be not impacted, only direct state interface users claiming the hardware interface.
 * fix: default thread priority for franka_hardware interface threads is now 98 (was 50) to 
   ensure RT stability.
-* fix: 
-UNRELEASED
-----------
-
 * fix: recover from a ``franka::ControlException`` without restarting
   ``ros2_control_node``. ``franka_robot_state_broadcaster`` and
   ``joint_state_broadcaster`` stay lifecycle-active. One update cycle may
