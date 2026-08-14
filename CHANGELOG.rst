@@ -1,7 +1,7 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-UNRELEASED
+v2.7.0 (2026-08-14)
 ----------
 
 * feat: add TMR battery ROS 2 support in ``franka_mobile`` (``sensor_msgs/BatteryState``
