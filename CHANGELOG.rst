@@ -1,6 +1,10 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+UNRELEASED
+----------
+
+* fix: accelerometers data is float in libfranka 0.20.5
 
 v3.5.0 (2026-08-14)
 ----------
