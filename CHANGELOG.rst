@@ -1,13 +1,21 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+v3.5.2 (2026-08-17)
+-------------------
+Requires libfranka >= 0.20.4 and franka_description >= 2.9.0 requires ROS 2 Jazzy
+
+* fix: updated franka_description to 2.9.0
+
 v3.5.1 (2026-08-14)
 -------------------
+Requires libfranka >= 0.20.4 and franka_description >= 2.9.0 requires ROS 2 Jazzy
 
 * fix: accelerometers data is float in libfranka 0.20.5
 
 v3.5.0 (2026-08-14)
 -------------------
+Requires libfranka >= 0.20.4 and franka_description >= 2.9.0 requires ROS 2 Jazzy
 
 * feat: add TMR battery ROS 2 support in ``franka_mobile`` (``sensor_msgs/BatteryState``
   topic at 1 Hz and ``std_srvs/Trigger`` services for wireless charging), with an
