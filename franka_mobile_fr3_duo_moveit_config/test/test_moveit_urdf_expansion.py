@@ -34,7 +34,7 @@ MOVEIT_URDF = 'mobile_fr3_duo_v0_2.moveit.urdf.xacro'
 
 GZ_SYSTEM_PLUGIN_FILENAME = 'gz_ros2_control-system'
 GZ_SIM_PLUGIN = 'gz_ros2_control/GazeboSimSystem'
-GZ_GRAVITY_COMP_PLUGIN = 'franka_gazebo_hardware/GazeboGravityCompensationSystem'
+FRANKA_GRAVITY_COMP_PLUGIN = 'franka_gazebo_hardware/FrankaGazeboHardwareInterface'
 REAL_PLUGIN = 'franka_hardware/FrankaHardwareInterface'
 MOCK_PLUGIN = 'mock_components/GenericSystem'
 
@@ -115,7 +115,7 @@ def test_expansion_gz_effort_false():
 def test_expansion_gz_effort_true():
     """Gazebo with effort: one gravity-comp block, gz system, effort interfaces."""
     urdf = expand(CASES['gz_effort_true'])
-    assert hardware_plugins(urdf) == [GZ_GRAVITY_COMP_PLUGIN]
+    assert hardware_plugins(urdf) == [FRANKA_GRAVITY_COMP_PLUGIN]
     assert has_gz_system(urdf)
     assert has_effort_command(urdf)
 

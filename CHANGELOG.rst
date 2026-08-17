@@ -22,6 +22,9 @@ Requires libfranka >= 0.20.4 and franka_description >= 2.9.0 requires ROS 2 Jazz
   ``Cannot start motion: spine is SwitchedOff (expected SwitchedOn)``.
 
 
+* fix: ``franka_mobile_fr3_duo_moveit_config`` test fixed for new franka hardware
+  compensation plugin.
+
 v3.5.2 (2026-08-17)
 -------------------
 Requires libfranka >= 0.20.4 and franka_description >= 2.9.0 requires ROS 2 Jazzy
