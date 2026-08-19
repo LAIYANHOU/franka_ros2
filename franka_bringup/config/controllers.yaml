@@ -68,9 +68,6 @@
       move_to_start_example_controller:
         type: franka_example_controllers/MoveToStartExampleController
 
-      mobile_cartesian_velocity_example_controller:
-        type: franka_example_controllers/MobileCartesianVelocityExampleController
-
       mobile_fr3_duo_joint_impedance_example_controller:
         type: franka_example_controllers/MobileFr3DuoJointImpedanceExampleController
 
