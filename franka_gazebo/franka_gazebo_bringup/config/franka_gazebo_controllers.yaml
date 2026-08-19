@@ -32,9 +32,6 @@ controller_manager:
     franka_robot_state_broadcaster:
       type: franka_robot_state_broadcaster/FrankaRobotStateBroadcaster
 
-    mobile_cartesian_velocity_controller:
-      type: franka_example_controllers/MobileCartesianVelocityExampleController
-
     swerve_ik_controller:
       type: franka_mobile/SwerveIKController
 
