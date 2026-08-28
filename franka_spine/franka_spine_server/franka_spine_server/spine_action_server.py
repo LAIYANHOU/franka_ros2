@@ -32,7 +32,6 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
-
 class SpineActionServer(Node):
     """ROS 2 node that wires services and actions to the SpineController."""
 
@@ -40,7 +39,8 @@ class SpineActionServer(Node):
         super().__init__('franka_spine_node')
 
         self.declare_parameter('spine_ip', '')
-        self.declare_parameter('http_timeout', 5.0)
+        # Connect + short REST (position/state/halt). Not a move duration.
+        self.declare_parameter('http_timeout', 3.0)
         self.declare_parameter('feedback_rate', 10.0)
 
         spine_ip = self.get_parameter('spine_ip').get_parameter_value().string_value
