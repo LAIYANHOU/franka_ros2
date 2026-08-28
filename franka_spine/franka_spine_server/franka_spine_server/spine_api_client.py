@@ -18,6 +18,11 @@ from typing import Any, Tuple
 
 from franka_desk_api._rest_client import _FrankaRestClient
 
+# Hang guard for motion-mm:start. Connect still uses the short REST timeout.
+# Far longer than any real spine travel; the device holds this POST until the
+# move finishes or is quick-stopped.
+MOTION_READ_TIMEOUT = 600.0
+
 
 class SpineApiClient(_FrankaRestClient):
     """Client for the Franka Spine REST API."""
@@ -33,7 +38,7 @@ class SpineApiClient(_FrankaRestClient):
 
     def get_position(self) -> Tuple[bool, Any]:
         """
-        GET /api/spine/position-mm.
+        GET /spine/api/position-mm.
 
         Returns position converted from mm to metres.
         """
@@ -43,19 +48,19 @@ class SpineApiClient(_FrankaRestClient):
         return success, data
 
     def get_state(self) -> Tuple[bool, Any]:
-        """GET /api/spine/state."""
+        """GET /spine/api/state."""
         return self.get('state')
 
     def fault_reset(self) -> Tuple[bool, Any]:
-        """POST /api/spine/spine:fault-reset."""
+        """POST /spine/api/spine:fault-reset."""
         return self.post('spine:fault-reset')
 
     def switch_off(self) -> Tuple[bool, Any]:
-        """POST /api/spine/spine:switch-off."""
+        """POST /spine/api/spine:switch-off."""
         return self.post('spine:switch-off')
 
     def switch_on(self) -> Tuple[bool, Any]:
-        """POST /api/spine/spine:switch-on."""
+        """POST /spine/api/spine:switch-on."""
         return self.post('spine:switch-on')
 
     def start_motion(
@@ -66,9 +71,11 @@ class SpineApiClient(_FrankaRestClient):
         deceleration: float,
     ) -> Tuple[bool, Any]:
         """
-        POST /api/spine/motion-mm:start.
+        POST /spine/api/motion-mm:start.
 
         Accepts values in metres and converts from (m/s) / (m/s²) to (mm/s) / (mm/s²).
+        The HTTP read uses ``MOTION_READ_TIMEOUT`` (not ``http_timeout``): the
+        device holds this connection until the move finishes or is quick-stopped.
 
         :param position: Target position in metres.
         :param velocity: Motion velocity in m/s.
@@ -81,15 +88,21 @@ class SpineApiClient(_FrankaRestClient):
             'acceleration': int(round(acceleration * 1000)),
             'deceleration': int(round(deceleration * 1000)),
         }
-        return self.post('motion-mm:start', data)
+        return self.post(
+            'motion-mm:start', data, timeout=(self.timeout, MOTION_READ_TIMEOUT)
+        )
 
     def halt_motion(self) -> Tuple[bool, Any]:
-        """POST /api/spine/motion:halt."""
-        return self.post('motion:halt')
+        """POST /spine/api/motion:quick-stop.
+
+        The device has no ``motion:halt`` route. This is a DS402 quick-stop:
+        the drive enters QuickStopActive and then SwitchedOff.
+        """
+        return self.post('motion:quick-stop')
 
     def get_parameters(self) -> Tuple[bool, Any]:
         """
-        GET /api/spine/parameters.
+        GET /spine/api/parameters.
 
         Converts user-limit values from mm to metres.
         """

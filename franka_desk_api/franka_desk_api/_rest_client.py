@@ -18,6 +18,7 @@ This module is an implementation detail of franka_ros2 and is not part of the
 public API. It may change or be removed without notice.
 """
 
+import threading
 from typing import Any, Dict, Optional, Tuple
 
 import requests
@@ -33,6 +34,9 @@ class _FrankaRestClient:
 
     Builds URLs as ``https://{host}/{api_path}/{endpoint}`` with certificate
     verification disabled (same behaviour as Desk when opened by IP).
+
+    ``requests.Session`` is not thread-safe. Each calling thread gets its own
+    session via ``threading.local``.
     """
 
     def __init__(self, host: str, api_path: str, timeout: float):
@@ -45,9 +49,18 @@ class _FrankaRestClient:
         api_path = api_path.strip('/')
         self.base_url = f'https://{host}/{api_path}'
         self.timeout = timeout
-        self.session = requests.Session()
-        self.session.headers.update({'Content-Type': 'application/json'})
-        self.session.verify = False
+        self._local = threading.local()
+
+    @property
+    def session(self) -> requests.Session:
+        """Return the ``requests.Session`` for the calling thread."""
+        session = getattr(self._local, 'session', None)
+        if session is None:
+            session = requests.Session()
+            session.headers.update({'Content-Type': 'application/json'})
+            session.verify = False
+            self._local.session = session
+        return session
 
     def get(self, endpoint: str) -> Tuple[bool, Any]:
         """
@@ -68,10 +81,17 @@ class _FrankaRestClient:
         except requests.exceptions.RequestException as e:
             return False, str(e)
 
-    def post(self, endpoint: str, data: Optional[Dict] = None) -> Tuple[bool, Any]:
+    def post(
+        self,
+        endpoint: str,
+        data: Optional[Dict] = None,
+        timeout: Optional[Any] = None,
+    ) -> Tuple[bool, Any]:
         """
         Perform a POST request.
 
+        :param timeout: Overrides the client default. A ``(connect, read)``
+            tuple sets the two phases separately.
         :return: Tuple of (success, response_data_or_error_message).
             ``response_data`` is ``None`` when the body is empty.
         """
@@ -79,7 +99,7 @@ class _FrankaRestClient:
             response = self.session.post(
                 f'{self.base_url}/{endpoint.lstrip("/")}',
                 json=data,
-                timeout=self.timeout,
+                timeout=self.timeout if timeout is None else timeout,
             )
             response.raise_for_status()
             if response.content:
