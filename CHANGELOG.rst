@@ -1,6 +1,27 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+UNRELEASED
+----------
+Requires libfranka >= 0.20.4 and franka_description >= 2.9.0 requires ROS 2 Jazzy
+
+* fix: spine ``~/halt`` and ``move_absolute`` cancel did not stop the carriage.
+  ``halt_motion()`` posted to ``/spine/api/motion:halt``, which the device does
+  not implement (404). It now uses ``motion:quick-stop``, re-arms to
+  ``SwitchedOn`` after the DS402 stop, overlaps halt and feedback with the
+  blocking ``motion-mm:start`` on one HTTP client, and does not report a goal
+  canceled when halt fails.
+* fix: spine ``http_timeout`` (default 3 s) is only the connect timeout and the
+  budget for short REST. ``motion-mm:start`` uses ``(http_timeout, 600 s)`` so
+  a long move is not aborted by the short read; the motion lock stays held
+  until that POST returns.
+* feat: spine REST wire strings live in ``SpineStatus`` (DS402 states) and
+  ``SpineMotion`` (``Finished``).
+* fix: ``move_absolute`` no longer surfaces HTTP 424 when the spine is not
+  ``SwitchedOn``. It checks state first and reports e.g.
+  ``Cannot start motion: spine is SwitchedOff (expected SwitchedOn)``.
+
+
 v3.5.2 (2026-08-17)
 -------------------
 Requires libfranka >= 0.20.4 and franka_description >= 2.9.0 requires ROS 2 Jazzy
