@@ -1,7 +1,7 @@
 Changelog for package franka_ros2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-UNRELEASED
+v2.7.1 (2026-09-01)
 ----------
 
 * fix: spine ``~/halt`` and ``move_absolute`` cancel did not stop the carriage.
@@ -14,7 +14,7 @@ UNRELEASED
   budget for short REST. ``motion-mm:start`` uses ``(http_timeout, 600 s)`` so
   a long move is not aborted by the short read; the motion lock stays held
   until that POST returns.
-* feat: spine REST wire strings live in ``SpineStatus`` (DS402 states) and
+* refactor: spine REST wire strings live in ``SpineStatus`` (DS402 states) and
   ``SpineMotion`` (``Finished``).
 * fix: ``move_absolute`` no longer surfaces HTTP 424 when the spine is not
   ``SwitchedOn``. It checks state first and reports e.g.
