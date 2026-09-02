@@ -23,15 +23,17 @@ from launch.actions import (
     DeclareLaunchArgument,
     ExecuteProcess,
     IncludeLaunchDescription,
+    TimerAction,
     Shutdown
 )
-from launch.conditions import UnlessCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     Command,
     FindExecutable,
     LaunchConfiguration,
-    PathJoinSubstitution
+    PathJoinSubstitution,
+    PythonExpression
 )
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -54,18 +56,34 @@ def load_yaml(package_name, file_path):
 def generate_launch_description():
     robot_ip_parameter_name = 'robot_ip'
     use_fake_hardware_parameter_name = 'use_fake_hardware'
-    fake_sensor_commands_parameter_name = 'fake_sensor_commands'
+    fake_sensor_commands_parameter_name = 'mock_sensor_commands'
 
     robot_ip = LaunchConfiguration(robot_ip_parameter_name)
     use_fake_hardware = LaunchConfiguration(use_fake_hardware_parameter_name)
     fake_sensor_commands = LaunchConfiguration(
         fake_sensor_commands_parameter_name)
+
+    mode_param_name = 'mode'
+    mode = LaunchConfiguration(mode_param_name)
+
+    # Load pose tracking PID settings
+    pose_tracking_settings = load_yaml(
+        "franka_fr3_moveit_config", "config/pose_tracking_settings.yaml"
+    )
+    # Load your main servo config (with pose_tracking block included)
+    servo_yaml = load_yaml(
+        "franka_fr3_moveit_config", "config/servo_fr3.yaml"
+    )
+    if servo_yaml is None or pose_tracking_settings is None:
+        raise RuntimeError("Could not load servo_fr3.yaml or pose_tracking_settings.yaml!")
     
-    # Get parameters for the Servo node
-    servo_yaml = load_yaml("franka_fr3_moveit_config", "config/servo_fr3.yaml")
-    if servo_yaml is None:
-        raise RuntimeError("Could not load servo_fr3.yaml from franka_fr3_moveit_config package!")
-    servo_params = servo_yaml
+    # Combine parameters for pose tracking node
+    servo_params = {
+        "moveit_servo": {
+            **servo_yaml["moveit_servo"],
+            **pose_tracking_settings
+        }
+    }
 
     # Command-line arguments
     db_arg = DeclareLaunchArgument(
@@ -79,9 +97,9 @@ def generate_launch_description():
     )
 
     robot_description_config = Command(
-        [FindExecutable(name='xacro'), ' ', franka_xacro_file, ' hand:=false',
+        [FindExecutable(name='xacro'), ' ', franka_xacro_file, ' hand:=true ee_id:=leap_hand',
          ' robot_ip:=', robot_ip, ' use_fake_hardware:=', use_fake_hardware,
-         ' fake_sensor_commands:=', fake_sensor_commands, ' ros2_control:=true'])
+         ' mock_sensor_commands:=', fake_sensor_commands, ' ros2_control:=true'])
 
     robot_description = {'robot_description': ParameterValue(
         robot_description_config, value_type=str)}
@@ -94,7 +112,7 @@ def generate_launch_description():
 
     robot_description_semantic_config = Command(
         [FindExecutable(name='xacro'), ' ',
-         franka_semantic_xacro_file, ' hand:=false']
+         franka_semantic_xacro_file, ' hand:=true ee_id:=leap_hand']
     )
 
     robot_description_semantic = {'robot_description_semantic': ParameterValue(
@@ -122,15 +140,15 @@ def generate_launch_description():
     )
     ompl_planning_pipeline_config['move_group'].update(ompl_planning_yaml)
 
-    # Trajectory Execution Functionality
-    moveit_simple_controllers_yaml = load_yaml(
-        'franka_fr3_moveit_config', 'config/fr3_controllers.yaml'
-    )
-    moveit_controllers = {
-        'moveit_simple_controller_manager': moveit_simple_controllers_yaml,
-        'moveit_controller_manager': 'moveit_simple_controller_manager'
-                                     '/MoveItSimpleControllerManager',
-    }
+    # # Trajectory Execution Functionality
+    # moveit_simple_controllers_yaml = load_yaml(
+    #     'franka_fr3_moveit_config', 'config/fr3_controllers.yaml'
+    # )
+    # moveit_controllers = {
+    #     'moveit_simple_controller_manager': moveit_simple_controllers_yaml,
+    #     'moveit_controller_manager': 'moveit_simple_controller_manager'
+    #                                  '/MoveItSimpleControllerManager',
+    # }
 
     trajectory_execution = {
         'moveit_manage_controllers': True,
@@ -146,21 +164,21 @@ def generate_launch_description():
         'publish_transforms_updates': True,
     }
 
-    # Start the actual move_group node/action server
-    run_move_group_node = Node(
-        package='moveit_ros_move_group',
-        executable='move_group',
-        output='screen',
-        parameters=[
-            robot_description,
-            robot_description_semantic,
-            kinematics_yaml,
-            ompl_planning_pipeline_config,
-            trajectory_execution,
-            moveit_controllers,
-            planning_scene_monitor_parameters,
-        ],
-    )
+    # # Start the actual move_group node/action server
+    # run_move_group_node = Node(
+    #     package='moveit_ros_move_group',
+    #     executable='move_group',
+    #     output='screen',
+    #     parameters=[
+    #         robot_description,
+    #         robot_description_semantic,
+    #         kinematics_yaml,
+    #         ompl_planning_pipeline_config,
+    #         trajectory_execution,
+    #         # moveit_controllers,
+    #         planning_scene_monitor_parameters,
+    #     ],
+    # )
 
     # RViz
     rviz_base = os.path.join(get_package_share_directory(
@@ -225,7 +243,8 @@ def generate_launch_description():
         executable='joint_state_publisher',
         name='joint_state_publisher',
         parameters=[
-            {'source_list': ['franka/joint_states', 'fr3_gripper/joint_states'], 'rate': 30}],
+            # {'source_list': ['franka/joint_states', 'fr3_gripper/joint_states'], 'rate': 30}],
+            {'source_list': ['franka/joint_states'], 'rate': 30}],
     )
 
     franka_robot_state_broadcaster = Node(
@@ -269,19 +288,104 @@ def generate_launch_description():
         output="screen",
     )
 
-    return LaunchDescription(
-        [robot_arg,
-         use_fake_hardware_arg,
-         fake_sensor_commands_arg,
-         db_arg,
-         rviz_node,
-         robot_state_publisher,
-         run_move_group_node,
-         ros2_control_node,
-         joint_state_publisher,
-         franka_robot_state_broadcaster,
-        #  gripper_launch_file,
-        # servo_node
-         ]
-        + load_controllers
+    # Pose tracking node
+    pose_tracking_node = Node(
+        package="moveit_servo",
+        executable="servo_pose_tracking",
+        output="screen",
+        parameters=[
+            servo_params,
+            robot_description,
+            robot_description_semantic,
+            kinematics_yaml,
+        ],
+    )
+    
+    process_killer = ExecuteProcess(
+        cmd=['fuser', '-k', '5005/udp'],
+        output='screen'
+    )
+
+    vive_pose_publisher = ExecuteProcess(
+        cmd=['python3', '/home/user/dex-retargeting/example/vector_retargeting/teleop_vive_leap_ros2.py'],
+        output='screen',
+        condition=UnlessCondition(PythonExpression(["'", mode, "' == 'replay'"]))
+    )
+    remove_old_bag = ExecuteProcess(
+        cmd=['rm', '-rf', '/tmp/pose_tracking_bag'],
+        output='screen',
+        condition=IfCondition(PythonExpression(["'", mode, "' == 'record'"]))
+    )
+    bag_recorder = TimerAction(
+        period=5.0,  # seconds
+        actions=[
+            ExecuteProcess(
+                cmd=[
+                    'ros2', 'bag', 'record', '-o', '/tmp/pose_tracking_bag',
+                    '/target_pose'],
+                output='screen',
+                condition=IfCondition(PythonExpression(["'", mode, "' == 'record'"]))
+            )
+        ]
+    )
+
+    # Bag replayer: play the bag only
+    bag_replayer = TimerAction(
+        period=5.0,  # seconds
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'bag', 'play', '/tmp/pose_tracking_bag'],
+                output='screen',
+                condition=IfCondition(PythonExpression(["'", mode, "' == 'replay'"]))
+            )
+        ]
+    )
+
+    origin_reset_trigger = TimerAction(
+        period=4.0,  # seconds
+        actions=[
+            ExecuteProcess(
+                cmd=[
+                    'ros2', 'service', 'call',
+                    '/reset_tracking_origin',
+                    'std_srvs/srv/Trigger', '{}'
+                ],
+                output='screen'
+            )
+        ]
+    )
+
+    servo_node_trigger = TimerAction(
+        period=5.0,  # seconds
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'service', 'call',
+                     '/servo_node/start_servo', 'std_srvs/srv/Trigger', '{}'],
+                output='screen'
+            )
+        ]
+    )
+
+    return LaunchDescription([
+        robot_arg,
+        use_fake_hardware_arg,
+        fake_sensor_commands_arg,
+        db_arg,
+        rviz_node,
+        robot_state_publisher,
+        # run_move_group_node,
+        ros2_control_node,
+        joint_state_publisher,
+        franka_robot_state_broadcaster,
+        # gripper_launch_file,
+        # servo_node,
+        pose_tracking_node,
+        process_killer,
+        vive_pose_publisher,
+        origin_reset_trigger,
+        servo_node_trigger,
+        remove_old_bag,
+        bag_recorder,
+        bag_replayer,
+    ] + load_controllers
     )
