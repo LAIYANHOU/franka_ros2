@@ -15,6 +15,7 @@ option(CHECK_TIDY "Adds clang-tidy tests" OFF)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
     Franka
+    controller_interface
     franka_hardware
     franka_msgs
     geometry_msgs
@@ -62,8 +63,6 @@ if(BUILD_TESTING)
   find_package(ament_cmake_xmllint REQUIRED)
   find_package(franka_msgs REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
-  find_package(controller_interface REQUIRED)
-
   set(CPP_DIRECTORIES src include)
   ament_clang_format(CONFIG_FILE ../.clang-format ${CPP_DIRECTORIES})
   ament_copyright(${CPP_DIRECTORIES} package.xml)
