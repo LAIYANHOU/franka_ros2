@@ -323,8 +323,8 @@ def generate_launch_description():
 
     # Pose tracking node
     pose_tracking_node = Node(
-        package="moveit_servo",
-        executable="servo_pose_tracking",
+        package="vishap_moveit_servo_bridge",
+        executable="vishap_pose_tracking",
         output="screen",
         parameters=[
             servo_params,
